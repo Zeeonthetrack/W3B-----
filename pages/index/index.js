@@ -1,289 +1,438 @@
-// index.js
+const SERVICE_UUID = "0000FFE0-0000-1000-8000-00805F9B34FB";
+const CHAR_UUID = "0000FFE1-0000-1000-8000-00805F9B34FB";
+
 Page({
   data: {
     connectStatus: "未连接",
+    bleAvailable: false,
     isSearching: false,
     isConnected: false,
     deviceList: [],
     connectedDeviceId: "",
+    lastDeviceId: "",
     writeCharacteristicId: "",
-    serviceId: "0000FFE0-0000-1000-8000-00805F9B34FB", // 通用BLE串口服务UUID
-    characteristicId: "0000FFE1-0000-1000-8000-00805F9B34FB", // 通用可写特征值UUID
-    filterDeviceName: "MySTM32Car" // 你的蓝牙模块名字
+    serviceId: SERVICE_UUID,
+    characteristicId: CHAR_UUID,
+    filterDeviceName: "MySTM32Car",
+
+    leftSpeed: 0,
+    rightSpeed: 0,
+    leftByte: 127,
+    rightByte: 127,
+
+    btnRed: 0,
+    btnBlue: 0,
+    btnGreen: 0,
+    btnYellow: 0,
+
+    leftStick: { x: 0, y: 0 },
+    rightStick: { x: 0, y: 0 },
+    logList: []
   },
 
-  // 页面加载时初始化蓝牙
+  padRect: { left: null, right: null },
+  // 使用 touch.identifier 绑定左右手指，避免串位
+  activeTouches: { left: null, right: null },
+
   onLoad() {
     this.initBluetooth();
   },
 
-  // 初始化蓝牙适配器
+  onReady() {
+    this.measurePads();
+  },
+
+  onUnload() {
+    this.disconnectDevice();
+    wx.closeBluetoothAdapter();
+  },
+
   initBluetooth() {
     wx.openBluetoothAdapter({
       success: () => {
-        console.log("蓝牙适配器初始化成功");
-        // 监听蓝牙状态变化
+        this.setData({ bleAvailable: true, connectStatus: "未连接" });
         wx.onBluetoothAdapterStateChange((res) => {
           if (!res.available) {
             this.setData({
-              connectStatus: "蓝牙已关闭",
+              connectStatus: "蓝牙未开启",
+              bleAvailable: false,
               isConnected: false
             });
-            wx.showToast({
-              title: "请开启手机蓝牙",
-              icon: "none"
-            });
+            wx.showToast({ title: "请开启手机蓝牙", icon: "none" });
+          } else {
+            this.setData({ bleAvailable: true, connectStatus: this.data.isConnected ? "已连接" : "未连接" });
           }
         });
       },
-      fail: (err) => {
-        console.log("蓝牙初始化失败", err);
-        wx.showToast({
-          title: "蓝牙初始化失败，请开启蓝牙",
-          icon: "none"
-        });
+      fail: () => {
+        this.setData({ bleAvailable: false, connectStatus: "蓝牙不可用" });
+        wx.showToast({ title: "请开启手机蓝牙", icon: "none" });
       }
     });
   },
 
-  // 开始搜索蓝牙设备
+  checkLocationPermission() {
+    const system = wx.getSystemInfoSync();
+    if (system.platform !== "android") return;
+
+    wx.getSetting({
+      success: (res) => {
+        if (!res.authSetting["scope.userLocation"]) {
+          wx.showModal({
+            title: "需要位置权限",
+            content: "安卓搜索蓝牙需要开启位置权限",
+            confirmText: "去开启",
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                wx.openSetting();
+              }
+            }
+          });
+        }
+      }
+    });
+  },
+
   startSearch() {
     if (this.data.isSearching) return;
+    if (!this.data.bleAvailable) {
+      wx.showToast({ title: "请开启手机蓝牙", icon: "none" });
+      return;
+    }
 
-    // 清空之前的设备列表
-    this.setData({
-      deviceList: [],
-      isSearching: true
-    });
+    this.checkLocationPermission();
 
-    // 开始搜索
+    this.setData({ deviceList: [], isSearching: true });
+
     wx.startBluetoothDevicesDiscovery({
-      allowDuplicatesKey: false, // 不重复显示同一设备
+      allowDuplicatesKey: false,
       success: () => {
-        console.log("开始搜索设备");
-        wx.showToast({
-          title: "正在搜索设备...",
-          icon: "loading"
-        });
-
-        // 监听发现新设备
+        wx.showToast({ title: "正在搜索设备...", icon: "loading" });
         wx.onBluetoothDeviceFound((res) => {
-          res.devices.forEach(device => {
-            // 只显示有名字、且名字匹配的设备
+          res.devices.forEach((device) => {
             if (!device.name || device.name.indexOf(this.data.filterDeviceName) === -1) return;
 
-            // 去重，避免重复添加
             const list = this.data.deviceList;
-            const isExist = list.some(item => item.deviceId === device.deviceId);
+            const isExist = list.some((item) => item.deviceId === device.deviceId);
             if (!isExist) {
               list.push(device);
-              this.setData({
-                deviceList: list
-              });
+              this.setData({ deviceList: list });
             }
           });
         });
 
-        // 10秒后自动停止搜索
         setTimeout(() => {
           this.stopSearch();
         }, 10000);
       },
-      fail: (err) => {
-        console.log("搜索设备失败", err);
-        this.setData({
-          isSearching: false
-        });
-        wx.showToast({
-          title: "搜索失败，请检查权限",
-          icon: "none"
-        });
+      fail: () => {
+        this.setData({ isSearching: false });
+        wx.showToast({ title: "搜索失败，请检查权限", icon: "none" });
       }
     });
   },
 
-  // 停止搜索设备
   stopSearch() {
     wx.stopBluetoothDevicesDiscovery({
       success: () => {
-        console.log("停止搜索");
-        this.setData({
-          isSearching: false
-        });
+        this.setData({ isSearching: false });
       }
     });
   },
 
-  // 连接选中的设备
   connectDevice(e) {
     const deviceId = e.currentTarget.dataset.deviceid;
-    if (this.data.isConnected) return;
+    this.connectDeviceById(deviceId);
+  },
 
-    wx.showLoading({
-      title: "正在连接..."
-    });
+  reconnectLast() {
+    if (!this.data.lastDeviceId || this.data.isConnected) return;
+    this.connectDeviceById(this.data.lastDeviceId);
+  },
 
-    // 停止搜索
+  connectDeviceById(deviceId) {
+    if (!deviceId || this.data.isConnected) return;
+
+    wx.showLoading({ title: "正在连接..." });
     this.stopSearch();
 
-    // 建立BLE连接
     wx.createBLEConnection({
-      deviceId: deviceId,
+      deviceId,
       success: () => {
-        console.log("设备连接成功");
         this.setData({
           connectedDeviceId: deviceId,
+          lastDeviceId: deviceId,
           connectStatus: "已连接",
           isConnected: true
         });
         wx.hideLoading();
-        wx.showToast({
-          title: "连接成功"
-        });
+        wx.showToast({ title: "连接成功" });
 
-        // 连接成功后，获取服务和特征值
         setTimeout(() => {
           this.getDeviceService(deviceId);
-        }, 1000);
+        }, 500);
 
-        // 监听连接断开
         wx.onBLEConnectionStateChange((res) => {
           if (!res.connected) {
-            console.log("连接已断开");
             this.setData({
               connectStatus: "连接已断开",
               isConnected: false,
               connectedDeviceId: "",
               writeCharacteristicId: ""
             });
-            wx.showToast({
-              title: "连接已断开",
-              icon: "none"
-            });
+            wx.showToast({ title: "连接已断开", icon: "none" });
           }
         });
       },
-      fail: (err) => {
-        console.log("连接失败", err);
+      fail: () => {
         wx.hideLoading();
-        wx.showToast({
-          title: "连接失败",
-          icon: "none"
-        });
+        wx.showToast({ title: "连接失败，请靠近设备", icon: "none" });
       }
     });
   },
 
-  // 获取设备的服务和特征值
   getDeviceService(deviceId) {
     wx.getBLEDeviceServices({
-      deviceId: deviceId,
+      deviceId,
       success: (res) => {
-        console.log("获取设备服务成功", res);
-        // 找到我们需要的服务
-        const service = res.services.find(item => item.uuid.toUpperCase() === this.data.serviceId.toUpperCase());
+        const service = res.services.find((item) => item.uuid.toUpperCase() === this.data.serviceId.toUpperCase());
         if (!service) {
-          wx.showToast({
-            title: "未找到匹配的服务",
-            icon: "none"
-          });
+          wx.showToast({ title: "未找到匹配服务", icon: "none" });
           return;
         }
 
-        // 获取特征值
         this.getDeviceCharacteristic(deviceId, service.uuid);
       },
-      fail: (err) => {
-        console.log("获取服务失败", err);
+      fail: () => {
+        wx.showToast({ title: "获取服务失败", icon: "none" });
       }
     });
   },
 
-  // 获取特征值
   getDeviceCharacteristic(deviceId, serviceId) {
     wx.getBLEDeviceCharacteristics({
-      deviceId: deviceId,
-      serviceId: serviceId,
+      deviceId,
+      serviceId,
       success: (res) => {
-        console.log("获取特征值成功", res);
-        // 找到可写的特征值
-        const characteristic = res.characteristics.find(item => item.uuid.toUpperCase() === this.data.characteristicId.toUpperCase());
+        const characteristic = res.characteristics.find(
+          (item) => item.uuid.toUpperCase() === this.data.characteristicId.toUpperCase()
+        );
         if (!characteristic || !characteristic.properties.write) {
-          wx.showToast({
-            title: "未找到可写特征值",
-            icon: "none"
-          });
+          wx.showToast({ title: "未找到可写特征值", icon: "none" });
           return;
         }
 
-        this.setData({
-          writeCharacteristicId: characteristic.uuid,
-          serviceId: serviceId
-        });
+        this.setData({ writeCharacteristicId: characteristic.uuid, serviceId });
       },
-      fail: (err) => {
-        console.log("获取特征值失败", err);
+      fail: () => {
+        wx.showToast({ title: "获取特征值失败", icon: "none" });
       }
     });
   },
 
-  // 发送指令给小车
-  sendCommand(e) {
-    const command = e.currentTarget.dataset.command;
-    if (!this.data.isConnected) {
-      wx.showToast({
-        title: "请先连接设备",
-        icon: "none"
-      });
-      return;
-    }
-
-    // 把16进制指令转成ArrayBuffer格式（微信BLE必须用这个格式）
-    const buffer = new Uint8Array([parseInt(command)]).buffer;
-
-    // 写入特征值
-    wx.writeBLECharacteristicValue({
-      deviceId: this.data.connectedDeviceId,
-      serviceId: this.data.serviceId,
-      characteristicId: this.data.writeCharacteristicId,
-      value: buffer,
-      success: () => {
-        console.log("指令发送成功", command);
-      },
-      fail: (err) => {
-        console.log("指令发送失败", err);
-        wx.showToast({
-          title: "指令发送失败",
-          icon: "none"
-        });
-      }
-    });
-  },
-
-  // 断开设备连接
   disconnectDevice() {
     if (!this.data.isConnected) return;
 
     wx.closeBLEConnection({
       deviceId: this.data.connectedDeviceId,
       success: () => {
-        console.log("断开连接成功");
         this.setData({
           connectStatus: "未连接",
           isConnected: false,
           connectedDeviceId: "",
           writeCharacteristicId: ""
         });
-        wx.showToast({
-          title: "已断开连接"
-        });
+        wx.showToast({ title: "已断开连接" });
       }
     });
   },
 
-  // 页面卸载时断开连接
-  onUnload() {
-    this.disconnectDevice();
-    wx.closeBluetoothAdapter();
+  measurePads() {
+    const query = wx.createSelectorQuery();
+    query.select("#leftPad").boundingClientRect();
+    query.select("#rightPad").boundingClientRect();
+    query.exec((res) => {
+      this.padRect.left = res[0] || null;
+      this.padRect.right = res[1] || null;
+    });
+  },
+
+  onJoystickStart(e) {
+    const side = e.currentTarget.dataset.side;
+    if (!this.padRect[side]) return;
+    if (this.activeTouches[side] !== null) return;
+
+    const touch = e.changedTouches[0];
+    // 只记录首次按下的那根手指编号，确保左右摇杆独立
+    this.activeTouches[side] = touch.identifier;
+    this.updateJoystickByTouch(side, touch);
+  },
+
+  onJoystickMove(e) {
+    const side = e.currentTarget.dataset.side;
+    const activeId = this.activeTouches[side];
+    if (activeId === null) return;
+
+    const touch = this.findTouchById(e.changedTouches, activeId);
+    if (!touch) return;
+
+    this.updateJoystickByTouch(side, touch);
+  },
+
+  onJoystickEnd(e) {
+    const side = e.currentTarget.dataset.side;
+    const activeId = this.activeTouches[side];
+    if (activeId === null) return;
+
+    const touch = this.findTouchById(e.changedTouches, activeId);
+    if (!touch) return;
+
+    this.activeTouches[side] = null;
+    const speedKey = side === "left" ? "leftSpeed" : "rightSpeed";
+    const stickKey = side === "left" ? "leftStick" : "rightStick";
+
+    this.setData({
+      [speedKey]: 0,
+      [stickKey]: { x: 0, y: 0 }
+    });
+    this.syncBytesAndSend();
+  },
+
+  updateJoystickByTouch(side, touch) {
+    const rect = this.padRect[side];
+    if (!rect) return;
+
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const stickRadius = rect.width * 0.18;
+    const maxRadius = rect.width / 2 - stickRadius;
+
+    let dx = touch.pageX - centerX;
+    let dy = touch.pageY - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > maxRadius) {
+      const scale = maxRadius / distance;
+      dx *= scale;
+      dy *= scale;
+    }
+
+    // 竖直方向严格线性映射：最下 -100，最上 +100
+    const value = Math.round((-dy / maxRadius) * 100);
+    const speed = this.clamp(value, -100, 100);
+
+    const speedKey = side === "left" ? "leftSpeed" : "rightSpeed";
+    const stickKey = side === "left" ? "leftStick" : "rightStick";
+
+    if (Math.abs(speed - this.data[speedKey]) < 3) {
+      this.setData({
+        [stickKey]: { x: dx, y: dy }
+      });
+      return;
+    }
+
+    this.setData({
+      [speedKey]: speed,
+      [stickKey]: { x: dx, y: dy }
+    });
+    this.syncBytesAndSend();
+  },
+
+  findTouchById(touches, id) {
+    for (let i = 0; i < touches.length; i += 1) {
+      if (touches[i].identifier === id) return touches[i];
+    }
+    return null;
+  },
+
+  onButtonTouchStart(e) {
+    const color = e.currentTarget.dataset.color;
+    this.updateButtonState(color, 1);
+  },
+
+  onButtonTouchEnd(e) {
+    const color = e.currentTarget.dataset.color;
+    this.updateButtonState(color, 0);
+  },
+
+  updateButtonState(color, pressed) {
+    const map = {
+      red: "btnRed",
+      blue: "btnBlue",
+      green: "btnGreen",
+      yellow: "btnYellow"
+    };
+    const key = map[color];
+    if (!key) return;
+
+    this.setData({ [key]: pressed });
+    this.syncBytesAndSend();
+  },
+
+  syncBytesAndSend() {
+    const leftByte = this.mapSpeedToByte(this.data.leftSpeed);
+    const rightByte = this.mapSpeedToByte(this.data.rightSpeed);
+    this.setData({ leftByte, rightByte });
+
+    const packet = this.buildPacket(leftByte, rightByte);
+    this.appendLog(packet);
+    this.writePacket(packet);
+  },
+
+  mapSpeedToByte(speed) {
+    // 线性映射：B = (V + 100) * 1.275，四舍五入取整
+    const raw = Math.round((speed + 100) * 1.275);
+    return this.clamp(raw, 0, 255);
+  },
+
+  buildPacket(leftByte, rightByte) {
+    const b0 = leftByte;
+    const b1 = rightByte;
+    const b2 = this.data.btnRed ? 1 : 0;
+    const b3 = this.data.btnBlue ? 2 : 0;
+    const b4 = this.data.btnGreen ? 3 : 0;
+    const b5 = this.data.btnYellow ? 4 : 0;
+    // XOR 校验字节
+    const b6 = b0 ^ b1 ^ b2 ^ b3 ^ b4 ^ b5;
+    const b7 = b6 ^ 0x55;
+
+    return new Uint8Array([b0, b1, b2, b3, b4, b5, b6, b7]);
+  },
+
+  writePacket(packet) {
+    if (!this.data.isConnected || !this.data.writeCharacteristicId) return;
+
+    wx.writeBLECharacteristicValue({
+      deviceId: this.data.connectedDeviceId,
+      serviceId: this.data.serviceId,
+      characteristicId: this.data.writeCharacteristicId,
+      value: packet.buffer,
+      fail: () => {
+        wx.showToast({ title: "发送失败", icon: "none" });
+      }
+    });
+  },
+
+  appendLog(packet) {
+    const hex = Array.from(packet)
+      .map((v) => v.toString(16).padStart(2, "0"))
+      .join(" ")
+      .toUpperCase();
+    const time = this.formatTime(new Date());
+    const next = [{ time, hex }, ...this.data.logList];
+    this.setData({ logList: next.slice(0, 100) });
+  },
+
+  clearLog() {
+    this.setData({ logList: [] });
+  },
+
+  formatTime(date) {
+    const pad = (num) => num.toString().padStart(2, "0");
+    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  },
+
+  clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   }
 });

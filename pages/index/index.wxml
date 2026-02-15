@@ -1,54 +1,127 @@
 <!--index.wxml-->
-<view class="container">
-  <!-- 连接状态提示 -->
-  <view class="status">当前状态：{{connectStatus}}</view>
-
-  <!-- 搜索设备区域 -->
-  <view class="search-area">
-    <button 
-      class="search-btn" 
-      bindtap="startSearch" 
-      disabled="{{isSearching}}"
-    >
-      {{isSearching ? '搜索中...' : '搜索蓝牙设备'}}
-    </button>
+<view class="page">
+  <view class="top-bar">
+    <view class="status-text">连接状态：{{connectStatus}}</view>
+    <view class="status-sub">左：{{leftSpeed}} | 右：{{rightSpeed}}　左字节：{{leftByte}} | 右字节：{{rightByte}}</view>
   </view>
 
-  <!-- 设备列表 -->
-  <view class="device-list" wx:if="{{deviceList.length > 0}}">
-    <view class="list-title">搜到的设备</view>
-    <view 
-      class="device-item" 
-      wx:for="{{deviceList}}" 
-      wx:key="deviceId"
-      bindtap="connectDevice"
-      data-deviceid="{{item.deviceId}}"
-    >
-      <text>{{item.name}}</text>
-      <text>信号：{{item.RSSI}} dBm</text>
-    </view>
-  </view>
+  <view class="main">
+    <view class="left-panel">
+      <view class="search-area">
+        <button class="search-btn" bindtap="startSearch" disabled="{{isSearching}}">
+          {{isSearching ? '搜索中...' : '搜索蓝牙设备'}}
+        </button>
+        <button class="reconnect-btn" bindtap="reconnectLast" disabled="{{isConnected || !lastDeviceId}}">
+          一键重连
+        </button>
+      </view>
 
-  <!-- 遥控器按钮区域（连接成功后才显示） -->
-  <view class="remote-area" wx:if="{{isConnected}}">
-    <!-- 前进按钮 -->
-    <view class="btn-row">
-      <button class="control-btn" bindtap="sendCommand" data-command="0x01">前进</button>
+      <view class="device-list" wx:if="{{deviceList.length > 0}}">
+        <view class="list-title">仅显示包含“{{filterDeviceName}}”的设备</view>
+        <view
+          class="device-item"
+          wx:for="{{deviceList}}"
+          wx:key="deviceId"
+          bindtap="connectDevice"
+          data-deviceid="{{item.deviceId}}"
+        >
+          <text class="device-name">{{item.name}}</text>
+          <text class="device-rssi">信号：{{item.RSSI}} dBm</text>
+        </view>
+      </view>
+
+      <view class="log-area">
+        <view class="log-header">
+          <view class="log-title">发送记录（最多100条）</view>
+          <button class="log-clear" bindtap="clearLog">清空</button>
+        </view>
+        <scroll-view class="log-list" scroll-y>
+          <view class="log-item" wx:for="{{logList}}" wx:key="index">
+            <text class="log-time">{{item.time}}</text>
+            <text class="log-hex">{{item.hex}}</text>
+          </view>
+        </scroll-view>
+      </view>
     </view>
 
-    <!-- 左右停止按钮 -->
-    <view class="btn-row">
-      <button class="control-btn" bindtap="sendCommand" data-command="0x03">左转</button>
-      <button class="control-btn stop-btn" bindtap="sendCommand" data-command="0x00">停止</button>
-      <button class="control-btn" bindtap="sendCommand" data-command="0x04">右转</button>
-    </view>
+    <view class="right-panel">
+      <view class="joystick-area">
+        <view class="joystick-block">
+          <view class="joystick-title">左摇杆</view>
+          <view
+            id="leftPad"
+            class="joystick"
+            data-side="left"
+            bindtouchstart="onJoystickStart"
+            bindtouchmove="onJoystickMove"
+            bindtouchend="onJoystickEnd"
+            bindtouchcancel="onJoystickEnd"
+          >
+            <view class="stick" style="transform: translate({{leftStick.x}}px, {{leftStick.y}}px);"></view>
+          </view>
+        </view>
 
-    <!-- 后退按钮 -->
-    <view class="btn-row">
-      <button class="control-btn" bindtap="sendCommand" data-command="0x02">后退</button>
-    </view>
+        <view class="joystick-block">
+          <view class="joystick-title">右摇杆</view>
+          <view
+            id="rightPad"
+            class="joystick"
+            data-side="right"
+            bindtouchstart="onJoystickStart"
+            bindtouchmove="onJoystickMove"
+            bindtouchend="onJoystickEnd"
+            bindtouchcancel="onJoystickEnd"
+          >
+            <view class="stick" style="transform: translate({{rightStick.x}}px, {{rightStick.y}}px);"></view>
+          </view>
+        </view>
+      </view>
 
-    <!-- 断开连接按钮 -->
-    <button class="disconnect-btn" bindtap="disconnectDevice">断开连接</button>
+      <view class="button-area">
+        <view class="button-title">功能按钮（按下即写入数据包）</view>
+        <view class="button-row">
+          <view
+            class="color-btn red {{btnRed ? 'pressed' : ''}}"
+            data-color="red"
+            bindtouchstart="onButtonTouchStart"
+            bindtouchend="onButtonTouchEnd"
+            bindtouchcancel="onButtonTouchEnd"
+          >
+            红色 {{btnRed ? '按下' : '松开'}}
+          </view>
+          <view
+            class="color-btn blue {{btnBlue ? 'pressed' : ''}}"
+            data-color="blue"
+            bindtouchstart="onButtonTouchStart"
+            bindtouchend="onButtonTouchEnd"
+            bindtouchcancel="onButtonTouchEnd"
+          >
+            蓝色 {{btnBlue ? '按下' : '松开'}}
+          </view>
+        </view>
+        <view class="button-row">
+          <view
+            class="color-btn green {{btnGreen ? 'pressed' : ''}}"
+            data-color="green"
+            bindtouchstart="onButtonTouchStart"
+            bindtouchend="onButtonTouchEnd"
+            bindtouchcancel="onButtonTouchEnd"
+          >
+            绿色 {{btnGreen ? '按下' : '松开'}}
+          </view>
+          <view
+            class="color-btn yellow {{btnYellow ? 'pressed' : ''}}"
+            data-color="yellow"
+            bindtouchstart="onButtonTouchStart"
+            bindtouchend="onButtonTouchEnd"
+            bindtouchcancel="onButtonTouchEnd"
+          >
+            黄色 {{btnYellow ? '按下' : '松开'}}
+          </view>
+        </view>
+      </view>
+
+      <button class="disconnect-btn" bindtap="disconnectDevice" disabled="{{!isConnected}}">断开连接</button>
+    </view>
   </view>
 </view>
