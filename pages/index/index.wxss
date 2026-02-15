@@ -1,57 +1,81 @@
 /* index.wxss */
 page {
   font-family: "DIN Alternate", "Futura", "PingFang SC", sans-serif;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .page {
-  min-height: 100vh;
-  padding: 24rpx;
+  width: 100vw;
+  height: 100vh;
+  padding: 2vh 2vw;
   background: linear-gradient(135deg, #f5f8ff 0%, #edf2ff 40%, #fef7f1 100%);
   box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .top-bar {
-  padding: 18rpx 24rpx;
+  width: 96vw;
+  max-width: 1200rpx;
+  padding: 1.4vh 2vw;
   border-radius: 16rpx;
   background: #111827;
   color: #f9fafb;
-  margin-bottom: 20rpx;
+  margin-bottom: 1.6vh;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .status-text {
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 700;
 }
 
 .status-sub {
-  margin-top: 8rpx;
-  font-size: 26rpx;
+  margin-top: 6rpx;
+  font-size: 24rpx;
   color: #e5e7eb;
 }
 
 .main {
+  width: 96vw;
+  max-width: 1200rpx;
+  height: calc(100vh - 13vh);
   display: flex;
-  gap: 20rpx;
+  gap: 1.6vw;
+  overflow: hidden;
+  box-sizing: border-box;
+  align-items: center;
 }
 
 .left-panel {
-  flex: 0 0 38%;
+  flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 1.4vh;
+  justify-content: center;
 }
 
 .right-panel {
   flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 1.4vh;
+  justify-content: center;
 }
 
 .search-area {
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1vw;
 }
 
 .search-btn,
@@ -59,8 +83,13 @@ page {
 .disconnect-btn,
 .log-clear {
   border-radius: 12rpx;
-  font-size: 26rpx;
+  font-size: 24rpx;
   line-height: 1.2;
+}
+
+.search-btn,
+.reconnect-btn {
+  flex: 1;
 }
 
 .search-btn {
@@ -83,45 +112,56 @@ page {
 .device-list {
   background: #ffffff;
   border-radius: 14rpx;
-  padding: 16rpx;
+  padding: 12rpx;
   box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.08);
+  max-height: 20vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .list-title {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #475569;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
+  text-align: center;
+}
+
+.device-scroll {
+  flex: 1;
+  height: 100%;
 }
 
 .device-item {
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
-  padding: 12rpx;
+  gap: 4rpx;
+  padding: 10rpx;
   background: #f8fafc;
   border-radius: 12rpx;
-  margin-bottom: 10rpx;
+  margin-bottom: 8rpx;
 }
 
 .device-name {
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: #111827;
 }
 
 .device-rssi {
-  font-size: 24rpx;
+  font-size: 20rpx;
   color: #64748b;
 }
 
 .log-area {
   background: #0f172a;
   border-radius: 16rpx;
-  padding: 16rpx;
+  padding: 12rpx;
   color: #e2e8f0;
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .log-header {
@@ -132,7 +172,7 @@ page {
 }
 
 .log-title {
-  font-size: 26rpx;
+  font-size: 22rpx;
 }
 
 .log-clear {
@@ -143,14 +183,14 @@ page {
 
 .log-list {
   flex: 1;
-  height: 360rpx;
+  min-height: 0;
 }
 
 .log-item {
   display: flex;
-  gap: 12rpx;
-  font-size: 22rpx;
-  padding: 6rpx 0;
+  gap: 10rpx;
+  font-size: 20rpx;
+  padding: 4rpx 0;
   border-bottom: 1rpx dashed rgba(148, 163, 184, 0.3);
 }
 
@@ -165,31 +205,38 @@ page {
 
 .joystick-area {
   display: flex;
-  justify-content: space-between;
-  gap: 24rpx;
+  justify-content: center;
+  align-items: center;
+  gap: 2.4vw;
 }
 
 .joystick-block {
   flex: 1;
   background: #ffffff;
   border-radius: 18rpx;
-  padding: 16rpx;
+  padding: 1.2vh 1.2vw;
   box-shadow: 0 10rpx 26rpx rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: 1vh;
+  max-width: 42%;
 }
 
 .joystick-title {
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: #1f2937;
+  text-align: center;
 }
 
 .joystick {
-  width: 220rpx;
-  height: 220rpx;
+  width: 25vh;
+  height: 25vh;
+  max-width: 240rpx;
+  max-height: 240rpx;
+  min-width: 180rpx;
+  min-height: 180rpx;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #eef2ff 0%, #c7d2fe 100%);
   position: relative;
@@ -210,29 +257,32 @@ page {
 .button-area {
   background: #ffffff;
   border-radius: 18rpx;
-  padding: 16rpx;
+  padding: 1.2vh 1.2vw;
   box-shadow: 0 8rpx 18rpx rgba(15, 23, 42, 0.1);
 }
 
 .button-title {
-  font-size: 26rpx;
+  font-size: 22rpx;
   color: #475569;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
+  text-align: center;
 }
 
 .button-row {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 12rpx;
+  justify-content: center;
+  gap: 1vw;
+  margin-bottom: 8rpx;
 }
 
 .color-btn {
   flex: 1;
-  padding: 18rpx;
+  max-width: 42%;
+  padding: 12rpx 10rpx;
   border-radius: 14rpx;
   color: #fff;
   text-align: center;
-  font-size: 26rpx;
+  font-size: 22rpx;
   transition: transform 0.1s ease;
 }
 
@@ -258,7 +308,8 @@ page {
 }
 
 .disconnect-btn {
-  margin-top: auto;
+  width: 100%;
+  margin-top: 0;
   background: #ef4444;
   color: #fff;
 }

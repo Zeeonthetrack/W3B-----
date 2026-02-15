@@ -18,16 +18,18 @@
 
       <view class="device-list" wx:if="{{deviceList.length > 0}}">
         <view class="list-title">仅显示包含“{{filterDeviceName}}”的设备</view>
-        <view
-          class="device-item"
-          wx:for="{{deviceList}}"
-          wx:key="deviceId"
-          bindtap="connectDevice"
-          data-deviceid="{{item.deviceId}}"
-        >
-          <text class="device-name">{{item.name}}</text>
-          <text class="device-rssi">信号：{{item.RSSI}} dBm</text>
-        </view>
+        <scroll-view class="device-scroll" scroll-y>
+          <view
+            class="device-item"
+            wx:for="{{deviceList}}"
+            wx:key="deviceId"
+            bindtap="connectDevice"
+            data-deviceid="{{item.deviceId}}"
+          >
+            <text class="device-name">{{item.name}}</text>
+            <text class="device-rssi">信号：{{item.RSSI}} dBm</text>
+          </view>
+        </scroll-view>
       </view>
 
       <view class="log-area">
