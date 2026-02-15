@@ -434,7 +434,10 @@ Page({
     this.setData({ logList: [] });
   },
 
-  f,
+  formatTime(date) {
+    const pad = (num) => num.toString().padStart(2, "0");
+    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  },
 
   /* --- 新增设置面板方法 (不影响核心逻辑) --- */
   toggleSettings() {
@@ -455,9 +458,6 @@ Page({
 
   toggleAutoReconnect(e) {
     this.setData({ 'settings.autoReconnect': e.detail.value });
-  }ormatTime(date) {
-    const pad = (num) => num.toString().padStart(2, "0");
-    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   },
 
   clamp(value, min, max) {

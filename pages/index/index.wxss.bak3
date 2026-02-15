@@ -26,7 +26,7 @@ page {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 1vh; /* Reduced padding */
+  padding: 0 20rpx;
   box-sizing: border-box;
   background: #000;
   z-index: 10;
@@ -36,27 +36,26 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5vh;
+  margin-bottom: 8rpx;
 }
 
 .status-group {
   display: flex;
   align-items: center;
-  font-size: 2.5vh; /* Optimized font size */
+  font-size: 24rpx;
 }
 
 .status-group .value {
   color: #00ff00;
-  margin-left: 0.5vw;
+  margin-left: 10rpx;
   font-weight: bold;
 }
 
 .settings-btn {
   border: 1px solid #444;
   border-radius: 4rpx;
-  padding: 0 0.8vw;
-  height: 3vh;
-  width: 3vh;
+  padding: 0 10rpx;
+  height: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,7 +63,7 @@ page {
 }
 
 .gear-icon {
-  font-size: 2vh;
+  font-size: 24rpx;
   color: #fff;
   line-height: 1;
 }
@@ -72,22 +71,18 @@ page {
 .control-bar {
   display: flex;
   justify-content: flex-start;
-  gap: 1vw; /* Consistent gap */
+  gap: 15rpx;
 }
 
 .action-btn {
   background: transparent;
   border: 1px solid #ffffff;
   color: #ffffff;
-  font-size: 2vh; /* Reduced font size */
-  padding: 0 1.5vw;
-  line-height: 3.5vh; /* Match height */
-  height: 3.5vh;
+  font-size: 22rpx;
+  padding: 0 24rpx;
+  line-height: 44rpx;
   margin: 0;
   border-radius: 4rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .action-btn.danger {
@@ -118,28 +113,26 @@ page {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0.5vh 1vw; /* Reduced padding */
+  padding: 10rpx;
   box-sizing: border-box;
 }
 
 .box-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5vh;
+  margin-bottom: 5rpx;
   border-bottom: 1px dashed #333;
-  padding-bottom: 0.2vh;
+  padding-bottom: 5rpx;
   flex-shrink: 0;
-  height: 2.5vh;
 }
 
 .box-title {
-  font-size: 1.8vh; /* Reduced */
+  font-size: 20rpx;
   color: #888;
 }
 
 .clear-btn {
-  font-size: 1.8vh; /* Reduced */
+  font-size: 20rpx;
   color: #00ffff;
   text-decoration: underline;
 }
@@ -153,13 +146,12 @@ page {
 }
 
 .log-item {
-  font-size: 1.6vh; /* Small monospace font */
+  font-size: 18rpx;
   display: flex;
-  gap: 0.5vw;
+  gap: 10rpx;
   font-family: 'Courier New', Courier, monospace;
-  line-height: 1.1;
-  margin-bottom: 0.1vh;
-  white-space: nowrap; /* No wrapping */
+  line-height: 1.2;
+  margin-bottom: 2rpx;
 }
 
 .log-item .time {
@@ -179,19 +171,19 @@ page {
   height: 100%;
   background: rgba(0, 0, 0, 0.95);
   z-index: 20;
-  padding: 1vh;
+  padding: 10rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
 .overlay-title {
-  font-size: 2vh;
+  font-size: 24rpx;
   text-align: center;
-  margin-bottom: 1vh;
+  margin-bottom: 10rpx;
   color: #fff;
   border-bottom: 1px solid #444;
-  padding-bottom: 0.5vh;
+  padding-bottom: 10rpx;
   flex-shrink: 0;
 }
 
@@ -202,21 +194,20 @@ page {
 
 .device-item {
   border: 1px solid #444;
-  margin-bottom: 0.5vh;
-  padding: 0.8vh;
+  margin-bottom: 8rpx;
+  padding: 10rpx;
   display: flex;
   justify-content: space-between;
   background: #111;
-  align-items: center; /* Center Vertically */
 }
 
 .device-item .name {
-  font-size: 1.8vh;
+  font-size: 22rpx;
   font-weight: bold;
 }
 
 .device-item .rssi {
-  font-size: 1.6vh;
+  font-size: 20rpx;
   color: #888;
 }
 
@@ -227,7 +218,7 @@ page {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 1vh 2vw; /* Reduced padding */
+  padding: 20rpx;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -237,44 +228,40 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Align from top to manage space */
+  justify-content: center;
   border: 1px solid #222;
   background: #050505;
   border-radius: 8rpx;
-  padding-top: 2vh;
 }
 
 .data-display {
   width: 100%;
   text-align: center;
-  font-size: 2vh; /* Reduced */
-  margin-bottom: 2vh;
+  font-size: 20rpx;
+  margin-bottom: 15rpx;
   color: #888;
   display: flex;
   flex-direction: column;
-  gap: 0.5vh;
+  gap: 2rpx;
 }
 
 .byte-val {
   color: #555;
-  font-size: 1.8vh; /* Slightly smaller */
+  font-size: 18rpx;
 }
 
 .joystick-area {
   position: relative;
-  width: 40vh; /* Using VH for circular size relative to height */
-  height: 40vh;
-  max-width: 90%; /* Prevent overflow width-wise */
-  max-height: 40vh; /* Limit height */
-  /* Aspect ratio maintenance is tricky without aspect-ratio prop, relies on width/height */
+  width: 160rpx;
+  height: 160rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .joystick-bg {
-  width: 32vh; /* Relative to screen height */
-  height: 32vh;
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
   border: 2rpx solid #666;
   background: radial-gradient(circle, #222 0%, #000 100%);
@@ -283,19 +270,19 @@ page {
 
 .stick {
   position: absolute;
-  width: 10vh;
-  height: 10vh;
+  width: 60rpx;
+  height: 60rpx;
   border-radius: 50%;
   background: #ffffff;
   top: 50%;
   left: 50%;
-  margin-left: -5vh; 
-  margin-top: -5vh;
+  margin-left: -30rpx;
+  margin-top: -30rpx;
   box-shadow: 0 0 10rpx rgba(255, 255, 255, 0.5);
 }
 
 .center-controls {
-  flex: 0 0 20%; /* Slightly reduce center wdith to give joy more room */
+  flex: 0 0 25%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -304,18 +291,18 @@ page {
 .dpad-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5vh; /* Gap relative to height */
+  gap: 15rpx;
 }
 
 .dpad-btn {
-  width: 8vh; /* Circle size relative to height */
-  height: 8vh;
+  width: 70rpx;
+  height: 70rpx;
   border-radius: 50%;
   border: 2rpx solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8vh; /* Reduced font */
+  font-size: 26rpx;
   font-weight: bold;
   background: #000;
   transition: all 0.1s;
@@ -352,33 +339,31 @@ page {
 }
 
 .modal-content {
-  width: 50vw; /* Reduced width */
+  width: 60vw;
   background: #000;
   border: 1px solid #fff;
   border-radius: 10rpx;
-  padding: 2vh 2vw;
+  padding: 30rpx;
   display: flex;
   flex-direction: column;
-  gap: 1.5vh;
+  gap: 20rpx;
 }
 
 .modal-header {
-  font-size: 2.2vh;
+  font-size: 30rpx;
   text-align: center;
-  margin-bottom: 1vh;
+  margin-bottom: 20rpx;
   border-bottom: 1px solid #333;
-  padding-bottom: 1vh;
-  color: #fff;
+  padding-bottom: 10rpx;
 }
 
 .setting-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.8vh;
+  font-size: 24rpx;
   border-bottom: 1px solid #222;
-  padding-bottom: 0.5vh;
-  color: #fff;
+  padding-bottom: 10rpx;
 }
 
 .setting-value {
@@ -386,15 +371,13 @@ page {
 }
 
 .modal-footer {
-  margin-top: 1vh;
+  margin-top: 20rpx;
   text-align: center;
 }
 
 .close-btn {
   background: #333;
   color: #fff;
-  font-size: 1.8vh;
+  font-size: 24rpx;
   border: 1px solid #666;
-  padding: 0.5vh 2vw;
-  line-height: normal;
 }
