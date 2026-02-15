@@ -374,6 +374,23 @@ page {
 
 .panel-content { flex: 1; overflow-y: auto; }
 
+/* Log Legend */
+.log-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5vw;
+  padding: 1vh 0;
+  margin-bottom: 1vh;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.legend-item {
+  font-size: 1.6vh;
+  color: #8E8E93;
+  background: rgba(255,255,255,0.05);
+  padding: 0.3vh 1vw;
+  border-radius: 4px;
+}
+
 /* Log Items in Full Panel */
 .log-item {
   display: flex;

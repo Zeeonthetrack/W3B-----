@@ -143,6 +143,13 @@ module.exports = {
           <view class="header-btn close" catchtap="closeLogPanel">✕</view>
         </view>
       </view>
+      <view class="log-legend">
+        <text class="legend-item">L:左电机</text>
+        <text class="legend-item">R:右电机</text>
+        <text class="legend-item">A/B/C/D:按钮</text>
+        <text class="legend-item">X:校验</text>
+        <text class="legend-item">T:尾标</text>
+      </view>
       <scroll-view class="panel-content" scroll-y="true">
         <view class="log-item" wx:for="{{logList}}" wx:key="index">
           <text class="item-time">[{{item.time}}]</text>

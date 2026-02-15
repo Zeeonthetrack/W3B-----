@@ -415,12 +415,11 @@ Page({
   },
 
   appendLog(packet) {
-    const hex = Array.from(packet)
-      .map((v) => v.toString(16).padStart(2, "0"))
-      .join(" ")
-      .toUpperCase();
+    const bytes = Array.from(packet);
+    const hexRaw = bytes.map((v) => v.toString(16).padStart(2, "0").toUpperCase()).join(" ");
+    const hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} A:${bytes[2]} B:${bytes[3]} C:${bytes[4]} D:${bytes[5]} X:${bytes[6].toString(16).padStart(2,"0").toUpperCase()} T:${bytes[7].toString(16).padStart(2,"0").toUpperCase()}`;
     const time = this.formatTime(new Date());
-    const next = [{ time, hex }, ...this.data.logList];
+    const next = [{ time, hex, hexRaw }, ...this.data.logList];
     this.setData({ logList: next.slice(0, 100) });
   },
 
