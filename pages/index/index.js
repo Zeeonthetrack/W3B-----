@@ -277,8 +277,46 @@ Page({
     });
   },
 
+    // --- 重构: 摇杆跟随手指逻辑 ---
+    // 1. 获取屏幕信息，计算 20vh 的像素值 (用于居中显示)
+    // 简单起见，这里不需要精确尺寸，只需要设置中心点
+    const sys = wx.getSystemInfoSync();
+    // 摇杆直径约 20vh
+    const joySize = sys.windowHeight * 0.20; 
+    
+    // 2. 动态设置摇杆中心点
+    // 视觉上，摇杆外盘左上角位置 = 触点 - 半径
+    const stickPosKey = side === "left" ? "leftPos" : "rightPos";
+    const visKey = side === "left" ? "leftVis" : "rightVis";
+
+    this.setData({
+      [visKey]: true,
+      [stickPosKey]: { 
+        left: touch.pageX - joySize / 2, 
+        top: touch.pageY - joySize / 2 
+      }
+    });
+
+    // 3. 更新 padRect，让后续的 updateJoystickByTouch 基于此新中心计算
+    // 这样核心计算逻辑完全不需要改动
+    this.padRect[side] = {
+      left: touch.pageX - joySize / 2,
+      top: touch.pageY - joySize / 2,
+      width: joySize,
+      height: joySize
+    };
+
+    
   onJoystickStart(e) {
     const side = e.currentTarget.dataset.side;
+<<<<<<< HEAD
+=======
+    if (!this.padRect[side]) return;
+    const visKey = side === "left" ? "leftVis" : "rightVis";
+
+    this.setData({
+      [visKey]: false, // 隐藏摇杆
+>>>>>>> 3cc297e62585ccde885829dcc861b7aaa0117968
     const touch = e.changedTouches[0];
     
     const sys = wx.getSystemInfoSync();
@@ -469,7 +507,14 @@ Page({
 
   formatTime(date) {
     consLogs() {
+<<<<<<< HEAD
     thist pad = (num) => num.toString().padStart(2, "0");
+=======
+    this.setData({ showLogs: !this.data.showLogs });
+  },
+
+  togglet pad = (num) => num.toString().padStart(2, "0");
+>>>>>>> 3cc297e62585ccde885829dcc861b7aaa0117968
     return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   },
 
