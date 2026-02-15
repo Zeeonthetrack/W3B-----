@@ -59,14 +59,14 @@
         <view class="icon-btn settings-btn" catchtap="toggleSettings">⚙</view>
       </view>
     </view>
+  </view>
 
-    <!-- Bottom Center Controls -->
-    <view class="center-dock">
-       <view class="action-btn red {{btnRed?'active':''}}" data-color="red" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">A</view>
-       <view class="action-btn blue {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">B</view>
-       <view class="action-btn green {{btnGreen?'active':''}}" data-color="green" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">C</view>
-       <view class="action-btn yellow {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">D</view>
-    </view>
+  <!-- === Layer 3.5: Floating Buttons (Direct Child for Z-Index Safety) === -->
+  <view class="center-dock">
+      <view class="action-btn red {{btnRed?'active':''}}" data-color="red" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">A</view>
+      <view class="action-btn blue {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">B</view>
+      <view class="action-btn green {{btnGreen?'active':''}}" data-color="green" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">C</view>
+      <view class="action-btn yellow {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">D</view>
   </view>
 
   <!-- === Layer 4: Popups (Z-Index 20+) === -->

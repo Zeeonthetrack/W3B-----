@@ -160,7 +160,8 @@ page {
   display: flex;
   gap: 4vw;
   pointer-events: auto;
-  z-index: 15; /* Ensure above other layers */
+  z-index: 100; /* Force Top Z-Index */
+  padding: 10px; /* Hitbox safety */
 }
 
 .action-btn {
@@ -176,20 +177,31 @@ page {
   transition: all 0.1s;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
   text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+  background-color: #333; /* Fallback Color */
 }
 
-.action-btn:active, .action-btn.active {
-  transform: translateY(2px) scale(0.95);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  filter: brightness(0.9);
+/* Specific Colors with Fallbacks */
+.action-btn.red { 
+  background-color: #ff4444; 
+  background: linear-gradient(135deg, #ff6b6b, #ff4444); 
+  border: 2px solid #800; 
 }
-
-.action-btn.red { background: linear-gradient(135deg, #ff6b6b, #ff4444); border: 2px solid #800; }
-.action-btn.blue { background: linear-gradient(135deg, #4facfe, #00f2fe); border: 2px solid #004080; }
-.action-btn.green { background: linear-gradient(135deg, #43e97b, #38f9d7); border: 2px solid #006030; }
-.action-btn.yellow { background: linear-gradient(135deg, #fddb92, #d1fdff); border: 2px solid #806000; color: #333; }
-/* Fix yellow gradient */
-.action-btn.yellow { background: linear-gradient(135deg, #ffeb3b, #fbc02d); color: #000; }
+.action-btn.blue { 
+  background-color: #00f2fe;
+  background: linear-gradient(135deg, #4facfe, #00f2fe); 
+  border: 2px solid #004080; 
+}
+.action-btn.green { 
+  background-color: #38f9d7;
+  background: linear-gradient(135deg, #43e97b, #38f9d7); 
+  border: 2px solid #006030; 
+}
+.action-btn.yellow { 
+  background-color: #fbc02d;
+  background: linear-gradient(135deg, #ffeb3b, #fbc02d); 
+  border: 2px solid #806000; 
+  color: #000; 
+}
 
 
 /* --- Layer 4: Panels --- */
