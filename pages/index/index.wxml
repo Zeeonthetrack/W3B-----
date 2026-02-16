@@ -48,9 +48,9 @@ module.exports = {
     <!-- 日志容器 -->
     <view class="log-container glass-panel" bindtap="toggleLogPanel" hover-class="panel-hover">
       <block wx:if="{{logList.length > 0}}">
-        <view class="log-line {{index === 0 ? 'highlight' : ''}}" wx:for="{{logList}}" wx:key="index" wx:if="{{index < 3}}">
-          <text class="log-time">{{item.time}}</text>
-          <text class="log-hex">{{item.hex}}</text>
+        <view class="log-line highlight">
+          <text class="log-time">{{logList[0].time}}</text>
+          <text class="log-hex">{{logList[0].hex}}</text>
         </view>
       </block>
       <view class="log-empty" wx:else>
