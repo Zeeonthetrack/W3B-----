@@ -167,7 +167,7 @@ page {
 
 /* Log Container */
 .log-container {
-  width: 90vw;
+  width: 50vw;
   max-width: 600px;
   height: 10vh;
   border-radius: 16px;
@@ -175,7 +175,7 @@ page {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 1.5vh 3vw;
+  padding: 1.5vh 2vw;
   box-sizing: border-box;
   overflow: hidden;
   transition: transform 0.1s;
@@ -191,6 +191,7 @@ page {
   gap: 2vw;
   padding: 0;
   border-bottom: none;
+  width: 100%;   
 }
 
 .log-time { font-size: 1.1em; color: #8E8E93; font-family: monospace; }
