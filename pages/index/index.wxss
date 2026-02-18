@@ -69,7 +69,7 @@ page {
 
 /* ========== Top Section (20%) ========== */
 .top-section {
-  flex: 0 0 20%;
+  flex: 0 0 10%;
   width: 100vw;
   display: flex;
   flex-direction: row;
@@ -79,7 +79,6 @@ page {
   box-sizing: border-box;
   z-index: 10;
   background: rgba(0, 0, 0, 0.6); /* Fallback */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .top-left {
@@ -91,10 +90,17 @@ page {
   flex: 1;
 }
 
+.status-and-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2vw;
+}
+
 .top-right {
   display: flex;
-  flex-direction: column; /* Changed to column to match "right aligned, top to bottom log+settings" */
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
   gap: 1.5vh;
 }
@@ -268,7 +274,7 @@ page {
 
 /* ========== Bottom Section (40%) ========== */
 .bottom-section {
-  flex: 0 0 40%;
+  flex: 0 0 46%;
   width: 100vw;
   display: flex;
   flex-direction: row;
@@ -276,6 +282,7 @@ page {
   justify-content: center;
   padding-bottom: 2vh; /* Slight bottom padding */
   box-sizing: border-box;
+  margin-top: -6vh; 
 }
 
 .control-zone {
@@ -340,11 +347,13 @@ page {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 3.5vh;
+  column-gap: 14vh;
+  row-gap: 3vh;
 }
 
 .game-btn {
-  width: 10vh;
-  height: 10vh;
+  width: 12vh;
+  height: 12vh;
   border-radius: 2.5vh;
   display: flex;
   align-items: center;

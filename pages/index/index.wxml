@@ -22,25 +22,18 @@ module.exports = {
     <!-- 顶部功能区 (20vh) -->
   <view class="top-section">
     <view class="top-left">
-      <!-- 蓝牙状态 -->
-      <view class="status-row">
-        <view class="status-dot {{isConnected ? 'connected' : (isSearching ? 'connecting' : 'disconnected')}}"></view>
-        <text class="status-text">{{isConnected ? '已连接' : (isSearching ? '搜索中...' : '未连接')}}</text>
-      </view>
-      
-      <!-- 操作按钮组 -->
-      <view class="control-row">
+      <!-- 蓝牙状态和操作按钮组 -->
+      <view class="status-and-buttons">
+        <view class="status-row">
+          <view class="status-dot {{isConnected ? 'connected' : (isSearching ? 'connecting' : 'disconnected')}}"></view>
+          <text class="status-text">{{isConnected ? '已连接' : (isSearching ? '搜索中...' : '未连接')}}</text>
+        </view>
+        
         <view class="btn-group">
           <view class="glass-btn primary {{isSearching ? 'disabled' : ''}}" bindtap="startSearch" hover-class="btn-hover">搜索</view>
           <view class="glass-btn {{isConnected || !lastDeviceId ? 'disabled' : ''}}" bindtap="reconnectLast" hover-class="btn-hover">重连</view>
           <view class="glass-btn warning {{!isConnected ? 'disabled' : ''}}" bindtap="disconnectDevice" hover-class="btn-hover">断开</view>
         </view>
-      </view>
-
-      <!-- 自动清空日志开关 -->
-      <view class="switch-row">
-        <switch checked="{{settings.autoClearLog}}" bindchange="toggleAutoClear" color="#34C759" scale="0.7"/>
-        <text class="switch-label">自动清空日志</text>
       </view>
     </view>
 
