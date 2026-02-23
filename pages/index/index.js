@@ -44,10 +44,10 @@ Page({
     menuButtonInfo: {},
   },
 
-  padRect: { left: null, right: null },
-  activeTouches: { left: null, right: null },
-
   onLoad() {
+    this.padRect = { left: null, right: null };
+    this.activeTouches = { left: null, right: null };
+    
     const that = this;
     
     const systemInfo = wx.getSystemInfoSync();

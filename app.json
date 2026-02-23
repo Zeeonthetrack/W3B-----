@@ -14,5 +14,6 @@
       "desc": "安卓搜索蓝牙需要位置权限"
     }
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
 }
