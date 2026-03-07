@@ -44,6 +44,7 @@ Page({
     },
     tempSettings: {}, // For holding unsaved changes
     sendTimer: null,
+    autoSaveTimer: null, // 自动保存定时器
     
     // 自定义数字键盘相关
     showCustomKeyboard: false, // 是否显示自定义键盘
@@ -76,6 +77,32 @@ Page({
     const savedLayout = wx.getStorageSync('customLayout');
     if (savedLayout) {
       that.setData({ layout: savedLayout });
+    }
+    
+    // Load app state for crash recovery
+    const savedState = wx.getStorageSync('appState');
+    if (savedState) {
+      // Restore important state except for temporary UI states
+      const { lastDeviceId, settings } = savedState;
+      if (lastDeviceId) {
+        that.setData({ lastDeviceId });
+      }
+      if (settings) {
+        // 向后兼容处理：将原来的useBinary转换为sendMode
+        if (settings.hasOwnProperty('useBinary')) {
+          settings.sendMode = settings.useBinary ? 'binary' : 'text';
+          delete settings.useBinary;
+        }
+        // 如果没有sendMode，则默认为text
+        if (!settings.hasOwnProperty('sendMode')) {
+          settings.sendMode = 'text';
+        }
+        // 如果没有sendInterval，或者值为默认的50，使用新的默认值100
+        if (!settings.hasOwnProperty('sendInterval') || settings.sendInterval === 50) {
+          settings.sendInterval = 100;
+        }
+        that.setData({ settings });
+      }
     }
     
     const systemInfo = wx.getSystemInfoSync();
@@ -124,6 +151,9 @@ Page({
     });
 
     this.initBluetooth();
+    
+    // Start auto-save timer
+    this.startAutoSave();
   },
 
   onReady() {
@@ -132,6 +162,7 @@ Page({
 
   onUnload() {
     this.stopSendLoop();
+    this.stopAutoSave();
     this.disconnectDevice();
     wx.closeBluetoothAdapter();
   },
@@ -149,6 +180,33 @@ Page({
       clearInterval(this.data.sendTimer);
       this.data.sendTimer = null;
     }
+  },
+  
+  // Auto-save functionality
+  startAutoSave() {
+    this.stopAutoSave(); // Clear existing timer if any
+    // Save state every 30 seconds
+    this.data.autoSaveTimer = setInterval(() => {
+      this.autoSaveState();
+    }, 30000);
+  },
+  
+  stopAutoSave() {
+    if (this.data.autoSaveTimer) {
+      clearInterval(this.data.autoSaveTimer);
+      this.data.autoSaveTimer = null;
+    }
+  },
+  
+  autoSaveState() {
+    // Save important state for crash recovery
+    const stateToSave = {
+      lastDeviceId: this.data.lastDeviceId,
+      settings: this.data.settings,
+      layout: this.data.layout
+    };
+    wx.setStorageSync('appState', stateToSave);
+    console.log('自动保存状态成功');
   },
 
   sendPacketTask() {
@@ -203,9 +261,18 @@ Page({
           }
         });
       },
-      fail: () => {
+      fail: (err) => {
+        console.error("蓝牙初始化失败:", err);
+        let errorMsg = "请开启手机蓝牙";
+        if (err.errCode === 10001) {
+          errorMsg = "蓝牙未开启，请在设置中开启蓝牙";
+        } else if (err.errCode === 10002) {
+          errorMsg = "蓝牙适配器不可用，请重启设备后重试";
+        } else if (err.errCode === 10003) {
+          errorMsg = "蓝牙适配器已被占用，请关闭其他蓝牙应用后重试";
+        }
         this.setData({ bleAvailable: false, connectStatus: "蓝牙不可用" });
-        wx.showToast({ title: "请开启手机蓝牙", icon: "none" });
+        wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
       }
     });
   },
@@ -344,7 +411,17 @@ Page({
       fail: (err) => {
         console.error("设备连接失败:", err);
         wx.hideLoading();
-        wx.showToast({ title: `连接失败: ${err.errMsg}`, icon: "none" });
+        let errorMsg = "连接失败";
+        if (err.errCode === 10012) {
+          errorMsg = "连接超时，请确保设备在附近并处于可连接状态";
+        } else if (err.errCode === 10013) {
+          errorMsg = "设备连接失败，请检查设备是否正常工作";
+        } else if (err.errCode === 10014) {
+          errorMsg = "设备已断开连接，请重新搜索连接";
+        } else {
+          errorMsg = `连接失败: ${err.errMsg}`;
+        }
+        wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
       }
     });
   },
@@ -381,8 +458,16 @@ Page({
       },
       fail: (err) => {
         wx.hideLoading();
-        wx.showToast({ title: `获取服务失败: ${err.errMsg}`, icon: "none" });
         console.error("获取服务失败:", err);
+        let errorMsg = "获取服务失败";
+        if (err.errCode === 10015) {
+          errorMsg = "设备服务不可用，请重新连接设备";
+        } else if (err.errCode === 10016) {
+          errorMsg = "设备连接已断开，请重新搜索连接";
+        } else {
+          errorMsg = `获取服务失败: ${err.errMsg}`;
+        }
+        wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
       }
     });
   },
@@ -471,8 +556,16 @@ Page({
         console.log("=== 设备连接完全成功！可以开始发送数据 ===");
       },
       fail: (err) => {
-        wx.showToast({ title: `获取特征值失败: ${err.errMsg}`, icon: "none" });
         console.error("获取特征值失败:", err);
+        let errorMsg = "获取特征值失败";
+        if (err.errCode === 10017) {
+          errorMsg = "设备特征值不可用，请重新连接设备";
+        } else if (err.errCode === 10018) {
+          errorMsg = "设备连接已断开，请重新搜索连接";
+        } else {
+          errorMsg = `获取特征值失败: ${err.errMsg}`;
+        }
+        wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
       }
     });
   },
@@ -561,7 +654,20 @@ Page({
       dy *= scale;
     }
 
-    const value = Math.round((-dy / (maxRadius * 0.6)) * 100);
+    // 优化速度计算：使用平滑的非线性映射，提供更自然的控制体验
+    // 保留原有方向计算，但使用更平滑的增益曲线
+    const normalizedY = -dy / maxRadius;
+    
+    // 使用平滑的非线性映射，提供更自然的控制体验
+    // 当摇杆接近中心时，灵敏度较低，便于精细控制
+    // 当摇杆接近边缘时，灵敏度较高，便于快速控制
+    let mappedValue = normalizedY;
+    if (Math.abs(normalizedY) > 0.1) {
+      // 对于较大的输入，使用三次函数增强响应
+      mappedValue = Math.sign(normalizedY) * Math.pow(Math.abs(normalizedY), 0.8);
+    }
+    
+    const value = Math.round(mappedValue * 100);
     const speed = this.clamp(value, -100, 100);
 
     const speedKey = side === "left" ? "leftSpeed" : "rightSpeed";
@@ -700,7 +806,17 @@ Page({
         // 只在首次失败时显示提示，避免频繁弹窗
         if (!this.hasSendError) {
           this.hasSendError = true;
-          wx.showToast({ title: `发送失败: ${res.errMsg}`, icon: "none" });
+          let errorMsg = "发送失败";
+          if (res.errCode === 10020) {
+            errorMsg = "设备不可写，请检查设备是否支持写入操作";
+          } else if (res.errCode === 10021) {
+            errorMsg = "设备连接已断开，请重新搜索连接";
+          } else if (res.errCode === 10022) {
+            errorMsg = "发送数据过大，请减少数据量";
+          } else {
+            errorMsg = `发送失败: ${res.errMsg}`;
+          }
+          wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
           // 3秒后重置错误标记
           setTimeout(() => {
             this.hasSendError = false;
