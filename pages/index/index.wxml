@@ -52,6 +52,34 @@ module.exports = {
 
   <!-- 中间日志显示区 (40vh) -->
   <view class="middle-section">
+    <!-- 左侧新增按键区 -->
+    <view class="left-buttons-container">
+      <view class="left-btn-item">
+        <view class="function-btn red {{btnLeftA?'active':''}}" data-color="leftA" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <text class="btn-label">A</text>
+        </view>
+      </view>
+      <view class="left-btn-item">
+        <view class="function-btn green {{btnLeftB?'active':''}}" data-color="leftB" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <text class="btn-label">B</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 右侧新增按键区 -->
+    <view class="right-buttons-container">
+      <view class="right-btn-item">
+        <view class="function-btn yellow {{btnRightC?'active':''}}" data-color="rightC" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <text class="btn-label">C</text>
+        </view>
+      </view>
+      <view class="right-btn-item">
+        <view class="function-btn blue {{btnRightD?'active':''}}" data-color="rightD" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <text class="btn-label">D</text>
+        </view>
+      </view>
+    </view>
+    
     <!-- 日志容器 -->
     <view class="log-container glass-panel" bindtap="toggleLogPanel" hover-class="panel-hover">
       <block wx:if="{{logList.length > 0}}">
@@ -136,7 +164,7 @@ module.exports = {
         </view>
         <view class="dpad-row">
           <view class="dpad-btn left {{btnGreen?'active':''}}" data-color="green" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">←</view>
-          <view class="dpad-center"></view>
+          <view class="dpad-center-btn {{btnCenter?'active':''}}" data-color="purple" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}"></view>
           <view class="dpad-btn right {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">→</view>
         </view>
         <view class="dpad-row">
@@ -190,6 +218,8 @@ module.exports = {
         <text class="legend-item">L:左电机</text>
         <text class="legend-item">R:右电机</text>
         <text class="legend-item">↑/↓/←/→:方向键</text>
+        <text class="legend-item">○:中间键</text>
+        <text class="legend-item">A/B:左侧功能键</text>
         <text class="legend-item">X:校验</text>
         <text class="legend-item">T:尾标</text>
       </view>

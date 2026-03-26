@@ -29,6 +29,11 @@ Page({
     btnBlue: 0,
     btnGreen: 0,
     btnYellow: 0,
+    btnCenter: 0,
+    btnLeftA: 0,
+    btnLeftB: 0,
+    btnRightC: 0,
+    btnRightD: 0,
 
     leftStick: { x: 0, y: 0 },
     rightStick: { x: 0, y: 0 },
@@ -710,7 +715,12 @@ Page({
       red: "btnRed",
       blue: "btnBlue",
       green: "btnGreen",
-      yellow: "btnYellow"
+      yellow: "btnYellow",
+      purple: "btnCenter",
+      leftA: "btnLeftA",
+      leftB: "btnLeftB",
+      rightC: "btnRightC",
+      rightD: "btnRightD"
     };
     const key = map[color];
     if (!key) return;
@@ -738,14 +748,19 @@ Page({
 
   buildPacket(leftByte, rightByte) {
     if (this.data.settings.sendMode === 'text') {
-      // 文本模式: [j,Lx,Ly,Rx,Ry]
+      // 文本模式: [j,Lx,Ly,Rx,Ry,C,A,B,C,D]
       // 使用标准化的速度值，与界面显示一致
       const Lx = this.data.leftSpeed;
       const Rx = this.data.rightSpeed;
-      // 按钮状态，A/B/C/D对应不同的值
+      // 按钮状态，↑/↓/←/→/中间键/左侧A/B/右侧C/D对应不同的值
       const Ly = this.data.btnRed ? 1 : 0;
       const Ry = this.data.btnBlue ? 1 : 0;
-      const textPacket = `[j,${Lx},${Ly},${Rx},${Ry}]`;
+      const C = this.data.btnCenter ? 1 : 0;
+      const A = this.data.btnLeftA ? 1 : 0;
+      const B = this.data.btnLeftB ? 1 : 0;
+      const RC = this.data.btnRightC ? 1 : 0;
+      const RD = this.data.btnRightD ? 1 : 0;
+      const textPacket = `[j,${Lx},${Ly},${Rx},${Ry},${C},${A},${B},${RC},${RD}]`;
       return textPacket;
     } else {
       // 二进制模式（原有格式）
@@ -755,10 +770,15 @@ Page({
       const b3 = this.data.btnBlue ? 2 : 0;
       const b4 = this.data.btnGreen ? 3 : 0;
       const b5 = this.data.btnYellow ? 4 : 0;
-      const b6 = b0 ^ b1 ^ b2 ^ b3 ^ b4 ^ b5;
-      const b7 = b6 ^ 0x55;
+      const b6 = this.data.btnCenter ? 5 : 0;
+      const b7 = this.data.btnLeftA ? 6 : 0;
+      const b8 = this.data.btnLeftB ? 7 : 0;
+      const b9 = this.data.btnRightC ? 8 : 0;
+      const b10 = this.data.btnRightD ? 9 : 0;
+      const checksum = b0 ^ b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 ^ b8 ^ b9 ^ b10;
+      const b11 = checksum ^ 0x55;
 
-      return new Uint8Array([b0, b1, b2, b3, b4, b5, b6, b7]);
+      return new Uint8Array([b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11]);
     }
   },
 
@@ -840,7 +860,7 @@ Page({
       // 二进制模式日志（原有格式）
       const bytes = Array.from(packet);
       hexRaw = bytes.map((v) => v.toString(16).padStart(2, "0").toUpperCase()).join(" ");
-      hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} ↑:${bytes[2]} ↓:${bytes[3]} ←:${bytes[4]} →:${bytes[5]} X:${bytes[6].toString(16).padStart(2,"0").toUpperCase()} T:${bytes[7].toString(16).padStart(2,"0").toUpperCase()}`;
+      hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} ↑:${bytes[2]} ↓:${bytes[3]} ←:${bytes[4]} →:${bytes[5]} ○:${bytes[6]} A:${bytes[7]} B:${bytes[8]} C:${bytes[9]} D:${bytes[10]} X:${bytes[11].toString(16).padStart(2,"0").toUpperCase()} T:${bytes[12]?.toString(16).padStart(2,"0").toUpperCase() || ''}`;
     }
     
     const time = this.formatTime(new Date());

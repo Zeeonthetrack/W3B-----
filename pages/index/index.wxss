@@ -198,6 +198,101 @@ page {
   align-items: center;
 }
 
+/* 左侧新增按键区样式 */
+.left-buttons-container {
+  position: absolute;
+  left: 8vw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4vh;
+  z-index: 5;
+}
+
+.left-btn-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 右侧新增按键区样式 */
+.right-buttons-container {
+  position: absolute;
+  right: 8vw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4vh;
+  z-index: 5;
+}
+
+.right-btn-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 黄色和蓝色功能按钮样式 */
+.function-btn.yellow {
+  background: linear-gradient(135deg, #FCC419, #E67700);
+}
+
+.function-btn.blue {
+  background: linear-gradient(135deg, #4DADF7, #006EDC);
+}
+
+.function-btn.yellow.active {
+  background: linear-gradient(135deg, #FFD43B, #F59E0B);
+}
+
+.function-btn.blue.active {
+  background: linear-gradient(135deg, #60A5FA, #3B82F6);
+}
+
+.function-btn {
+  width: 8vh;
+  height: 8vh;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: all 0.1s ease;
+  user-select: none;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.function-btn.red {
+  background: linear-gradient(135deg, #FF6B6B, #CC2929);
+}
+
+.function-btn.green {
+  background: linear-gradient(135deg, #51CF66, #2B8A3E);
+}
+
+.function-btn.active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  opacity: 0.9;
+}
+
+.function-btn.red.active {
+  background: linear-gradient(135deg, #FF8787, #E53E3E);
+}
+
+.function-btn.green.active {
+  background: linear-gradient(135deg, #69DB7C, #38A169);
+}
+
+.btn-label {
+  font-size: 1.8em;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
 /* Log Container */
 .log-container {
   width: 50vw;
@@ -454,13 +549,23 @@ page {
   border-left: none;
 }
 
-.dpad-center {
-  width: 8vh;
-  height: 8vh;
-  background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-top: none;
-  border-bottom: none;
+.dpad-center-btn {
+  width: 6vh;
+  height: 6vh;
+  background: linear-gradient(135deg, #8a2be2, #6a1b9a);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  margin: 1vh;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.dpad-center-btn.active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  opacity: 0.9;
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
 }
 
 .dpad-placeholder {
