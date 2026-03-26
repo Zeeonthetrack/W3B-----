@@ -403,6 +403,94 @@ page {
 .game-btn.green { background: linear-gradient(135deg, #51CF66, #2B8A3E); }
 .game-btn.yellow { background: linear-gradient(135deg, #FCC419, #E67700); }
 
+/* D-pad Styles */
+.dpad-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 1vh;
+}
+
+.dpad-row {
+  display: flex;
+  gap: 0;
+}
+
+.dpad-btn {
+  width: 8vh;
+  height: 8vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4em;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  transition: all 0.1s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+  border: 1px solid rgba(255,255,255,0.1);
+  user-select: none;
+}
+
+.dpad-btn.up {
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+
+.dpad-btn.down {
+  border-radius: 0 0 8px 8px;
+  border-top: none;
+}
+
+.dpad-btn.left {
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+}
+
+.dpad-btn.right {
+  border-radius: 0 8px 8px 0;
+  border-left: none;
+}
+
+.dpad-center {
+  width: 8vh;
+  height: 8vh;
+  background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: none;
+  border-bottom: none;
+}
+
+.dpad-placeholder {
+  width: 8vh;
+  height: 8vh;
+}
+
+.dpad-btn.active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  opacity: 0.9;
+  background: linear-gradient(135deg, #666, #444);
+}
+
+.dpad-btn.up.active {
+  background: linear-gradient(135deg, #FF6B6B, #CC2929);
+}
+
+.dpad-btn.down.active {
+  background: linear-gradient(135deg, #4DADF7, #006EDC);
+}
+
+.dpad-btn.left.active {
+  background: linear-gradient(135deg, #51CF66, #2B8A3E);
+}
+
+.dpad-btn.right.active {
+  background: linear-gradient(135deg, #FCC419, #E67700);
+}
+
 /* ========== Overlays (Full Screen) ========== */
 .full-overlay {
   position: fixed;

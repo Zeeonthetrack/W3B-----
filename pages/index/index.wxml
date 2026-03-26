@@ -128,11 +128,22 @@ module.exports = {
       
       <view class="edit-mask" wx:if="{{isEditMode}}"></view>
 
-      <view class="btn-grid">
-        <view class="game-btn red {{btnRed?'active':''}}" data-color="red" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">A</view>
-        <view class="game-btn blue {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">B</view>
-        <view class="game-btn green {{btnGreen?'active':''}}" data-color="green" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">C</view>
-        <view class="game-btn yellow {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">D</view>
+      <view class="dpad-container">
+        <view class="dpad-row">
+          <view class="dpad-placeholder"></view>
+          <view class="dpad-btn up {{btnRed?'active':''}}" data-color="red" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">↑</view>
+          <view class="dpad-placeholder"></view>
+        </view>
+        <view class="dpad-row">
+          <view class="dpad-btn left {{btnGreen?'active':''}}" data-color="green" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">←</view>
+          <view class="dpad-center"></view>
+          <view class="dpad-btn right {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">→</view>
+        </view>
+        <view class="dpad-row">
+          <view class="dpad-placeholder"></view>
+          <view class="dpad-btn down {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">↓</view>
+          <view class="dpad-placeholder"></view>
+        </view>
       </view>
     </view>
 
@@ -178,7 +189,7 @@ module.exports = {
       <view class="log-legend">
         <text class="legend-item">L:左电机</text>
         <text class="legend-item">R:右电机</text>
-        <text class="legend-item">A/B/C/D:按钮</text>
+        <text class="legend-item">↑/↓/←/→:方向键</text>
         <text class="legend-item">X:校验</text>
         <text class="legend-item">T:尾标</text>
       </view>

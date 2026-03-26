@@ -840,7 +840,7 @@ Page({
       // 二进制模式日志（原有格式）
       const bytes = Array.from(packet);
       hexRaw = bytes.map((v) => v.toString(16).padStart(2, "0").toUpperCase()).join(" ");
-      hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} A:${bytes[2]} B:${bytes[3]} C:${bytes[4]} D:${bytes[5]} X:${bytes[6].toString(16).padStart(2,"0").toUpperCase()} T:${bytes[7].toString(16).padStart(2,"0").toUpperCase()}`;
+      hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} ↑:${bytes[2]} ↓:${bytes[3]} ←:${bytes[4]} →:${bytes[5]} X:${bytes[6].toString(16).padStart(2,"0").toUpperCase()} T:${bytes[7].toString(16).padStart(2,"0").toUpperCase()}`;
     }
     
     const time = this.formatTime(new Date());
