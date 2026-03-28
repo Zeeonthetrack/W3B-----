@@ -201,12 +201,12 @@ page {
 /* 左侧新增按键区样式 */
 .left-buttons-container {
   position: absolute;
-  left: 8vw;
+  left: 7.5vw;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 4vh;
+  gap: 3.8vh;
   z-index: 5;
 }
 
@@ -219,12 +219,12 @@ page {
 /* 右侧新增按键区样式 */
 .right-buttons-container {
   position: absolute;
-  right: 8vw;
+  right: 7.5vw;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 4vh;
+  gap: 3.8vh;
   z-index: 5;
 }
 
@@ -504,13 +504,13 @@ page {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: -1px;
   padding: 1vh;
 }
 
 .dpad-row {
   display: flex;
-  gap: 0;
+  gap: -1px;
 }
 
 .dpad-btn {
@@ -550,13 +550,13 @@ page {
 }
 
 .dpad-center-btn {
-  width: 6vh;
-  height: 6vh;
+  width: 7vh;
+  height: 7vh;
   background: linear-gradient(135deg, #8a2be2, #6a1b9a);
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 50%;
   box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  margin: 1vh;
+  margin: 0.5vh;
   transition: all 0.1s ease;
   user-select: none;
 }
@@ -1089,4 +1089,118 @@ page {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== 底部滑杆样式 ========== */
+.slider-section {
+  height: 12vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  width: 90vw;
+  max-width: 500px;
+  height: 8vh;
+  position: relative;
+}
+
+.slider-label {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #FFFFFF;
+  width: 10vw;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.slider-left-label {
+  margin-right: 1vw;
+}
+
+.slider-right-label {
+  margin-left: 1vw;
+}
+
+.slider-track {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.slider-track-line {
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(90deg, #34C759, #FFC107, #FF453A);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.slider-thumb {
+  position: absolute;
+  width: 10vw;
+  height: 10vw;
+  max-width: 45px;
+  max-height: 45px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #E0E0E0 100%);
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3),
+              0 0 0 3px rgba(0, 122, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%);
+  transition: box-shadow 0.1s ease;
+  top: 50%;
+  margin-top: -5vw;
+}
+
+.slider-thumb:active {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4),
+              0 0 0 5px rgba(0, 122, 255, 0.3);
+}
+
+.slider-thumb-text {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #007AFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media screen and (max-height: 600px) {
+  .slider-section {
+    height: 14vh;
+  }
+  
+  .slider-container {
+    height: 10vh;
+  }
+  
+  .slider-label {
+    font-size: 1em;
+  }
+  
+  .slider-thumb {
+    margin-top: -5vw;
+  }
+  
+  .slider-thumb-text {
+    font-size: 1em;
+  }
+}
+
+@media screen and (min-width: 500px) {
+  .slider-thumb {
+    margin-top: -22.5px;
+  }
 }

@@ -34,6 +34,10 @@ Page({
     btnLeftB: 0,
     btnRightC: 0,
     btnRightD: 0,
+    
+    // 滑杆相关状态
+    sliderPosition: 50, // 默认中间位置 (0-100%)
+    sliderRect: null,
 
     leftStick: { x: 0, y: 0 },
     rightStick: { x: 0, y: 0 },
@@ -215,38 +219,43 @@ Page({
   },
 
   sendPacketTask() {
-    console.log("=== 开始发送数据包 ===");
-    console.log("连接状态:", this.data.isConnected);
-    console.log("特征值ID:", this.data.writeCharacteristicId);
-    console.log("服务ID:", this.data.serviceId);
+    // 减少日志输出，只在调试模式下输出
+    // console.log("=== 开始发送数据包 ===");
+    // console.log("连接状态:", this.data.isConnected);
+    // console.log("特征值ID:", this.data.writeCharacteristicId);
+    // console.log("服务ID:", this.data.serviceId);
     
     // Always calculate bytes based on current speed
     const leftByte = this.mapSpeedToByte(this.data.leftSpeed);
     const rightByte = this.mapSpeedToByte(this.data.rightSpeed);
     
-    console.log("速度值:", this.data.leftSpeed, this.data.rightSpeed);
-    console.log("映射后的字节值:", leftByte, rightByte);
+    // console.log("速度值:", this.data.leftSpeed, this.data.rightSpeed);
+    // console.log("映射后的字节值:", leftByte, rightByte);
     
     // Build packet
     const packet = this.buildPacket(leftByte, rightByte);
     
-    console.log("构建的数据包:", packet);
-    console.log("数据包类型:", typeof packet);
+    // console.log("构建的数据包:", packet);
+    // console.log("数据包类型:", typeof packet);
     
     // Always log (if binary mode or whatever, logging logic remains)
     this.appendLog(packet);
     
     // Only write if connected and has writeCharacteristicId
     if (this.data.isConnected && this.data.writeCharacteristicId) {
-      console.log("开始发送数据...");
+      // console.log("开始发送数据...");
       this.writePacket(packet);
     } else {
-      console.error("发送条件不满足:", {
-        isConnected: this.data.isConnected,
-        writeCharacteristicId: this.data.writeCharacteristicId
-      });
+      // 减少错误日志输出频率
+      if (!this.lastSendErrorLog || Date.now() - this.lastSendErrorLog > 1000) {
+        // console.error("发送条件不满足:", {
+        //   isConnected: this.data.isConnected,
+        //   writeCharacteristicId: this.data.writeCharacteristicId
+        // });
+        this.lastSendErrorLog = Date.now();
+      }
     }
-    console.log("=== 发送数据包结束 ===");
+    // console.log("=== 发送数据包结束 ===");
   },
 
   initBluetooth() {
@@ -644,32 +653,36 @@ Page({
     const rect = this.padRect[side];
     if (!rect) return;
 
+    // 预计算中心点和最大半径，优化计算
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const stickRadius = rect.width * 0.16;
-    const maxRadius = rect.width / 2 - stickRadius;
+    const maxRadius = rect.width / 2 - rect.width * 0.16;
 
     let dx = touch.pageX - centerX;
     let dy = touch.pageY - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // 优化：使用平方距离比较，避免开方运算
+    const distanceSquared = dx * dx + dy * dy;
+    const maxRadiusSquared = maxRadius * maxRadius;
 
-    if (distance > maxRadius) {
-      const scale = maxRadius / distance;
+    if (distanceSquared > maxRadiusSquared) {
+      // 只在必要时计算平方根
+      const scale = maxRadius / Math.sqrt(distanceSquared);
       dx *= scale;
       dy *= scale;
     }
 
-    // 优化速度计算：使用平滑的非线性映射，提供更自然的控制体验
-    // 保留原有方向计算，但使用更平滑的增益曲线
+    // 优化：简化速度计算，提高响应速度
     const normalizedY = -dy / maxRadius;
     
-    // 使用平滑的非线性映射，提供更自然的控制体验
-    // 当摇杆接近中心时，灵敏度较低，便于精细控制
-    // 当摇杆接近边缘时，灵敏度较高，便于快速控制
-    let mappedValue = normalizedY;
-    if (Math.abs(normalizedY) > 0.1) {
-      // 对于较大的输入，使用三次函数增强响应
-      mappedValue = Math.sign(normalizedY) * Math.pow(Math.abs(normalizedY), 0.8);
+    // 优化：使用分段线性映射替代幂函数，提高计算效率
+    let mappedValue;
+    if (Math.abs(normalizedY) <= 0.1) {
+      mappedValue = normalizedY; // 中心区域，线性响应
+    } else if (Math.abs(normalizedY) <= 0.5) {
+      mappedValue = Math.sign(normalizedY) * (0.1 + (Math.abs(normalizedY) - 0.1) * 1.125); // 中间区域，增强响应
+    } else {
+      mappedValue = Math.sign(normalizedY) * (0.6 + (Math.abs(normalizedY) - 0.5) * 0.8); // 边缘区域，平滑过渡
     }
     
     const value = Math.round(mappedValue * 100);
@@ -677,14 +690,21 @@ Page({
 
     const speedKey = side === "left" ? "leftSpeed" : "rightSpeed";
     const stickKey = side === "left" ? "leftStick" : "rightStick";
+    const currentSpeed = this.data[speedKey];
+    const currentStick = this.data[stickKey];
 
-    if (Math.abs(speed - this.data[speedKey]) < 2) {
-      this.setData({
-        [stickKey]: { x: dx, y: dy }
-      });
+    // 优化：减少setData调用频率
+    if (Math.abs(speed - currentSpeed) < 2) {
+      // 只有摇杆位置变化明显时才更新
+      if (Math.abs(dx - currentStick.x) > 1 || Math.abs(dy - currentStick.y) > 1) {
+        this.setData({
+          [stickKey]: { x: dx, y: dy }
+        });
+      }
       return;
     }
 
+    // 批量更新，减少setData调用
     this.setData({
       [speedKey]: speed,
       [stickKey]: { x: dx, y: dy }
@@ -694,8 +714,12 @@ Page({
   },
 
   findTouchById(touches, id) {
-    for (let i = 0; i < touches.length; i += 1) {
-      if (touches[i].identifier === id) return touches[i];
+    // 优化：使用更高效的循环方式
+    const len = touches.length;
+    for (let i = 0; i < len; i++) {
+      if (touches[i].identifier === id) {
+        return touches[i];
+      }
     }
     return null;
   },
@@ -850,6 +874,26 @@ Page({
 
 
   appendLog(packet) {
+    // 优化：减少日志处理频率，只在日志面板显示时处理
+    if (!this.data.showLogPanel) {
+      // 日志面板未显示时，只保留最新的日志条目，减少内存占用
+      if (this.data.logList.length === 0) {
+        // 只保留第一条日志，用于快速查看
+        let hex, hexRaw;
+        if (typeof packet === 'string') {
+          hex = packet;
+          hexRaw = packet;
+        } else {
+          const bytes = Array.from(packet);
+          hexRaw = bytes.map((v) => v.toString(16).padStart(2, "0").toUpperCase()).join(" ");
+          hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} ...`;
+        }
+        const time = this.formatTime(new Date());
+        this.setData({ logList: [{ time, hex, hexRaw }] });
+      }
+      return;
+    }
+    
     let hex, hexRaw;
     
     if (typeof packet === 'string') {
@@ -867,10 +911,11 @@ Page({
     const next = [{ time, hex, hexRaw }, ...this.data.logList];
     
     // Auto clear log check
-    if (this.data.settings.autoClearLog && next.length > 50) {
-       this.setData({ logList: next.slice(0, 50) });
+    const maxLogs = this.data.settings.autoClearLog ? 50 : 100;
+    if (next.length > maxLogs) {
+      this.setData({ logList: next.slice(0, maxLogs) });
     } else {
-       this.setData({ logList: next.slice(0, 100) }); 
+      this.setData({ logList: next }); 
     }
   },
 
@@ -1149,5 +1194,46 @@ Page({
 
   clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  },
+
+  // --- Slider Methods ---
+  onSliderStart(e) {
+    // 获取滑杆区域的位置信息
+    const query = wx.createSelectorQuery();
+    query.select('.slider-track').boundingClientRect();
+    query.exec((res) => {
+      if (res[0]) {
+        this.data.sliderRect = res[0];
+        this.updateSliderPosition(e.touches[0]);
+      }
+    });
+  },
+
+  onSliderMove(e) {
+    if (!this.data.sliderRect) return;
+    const touch = e.touches[0];
+    this.updateSliderPosition(touch);
+  },
+
+  onSliderEnd(e) {
+    // 触摸结束时的处理
+    this.data.sliderRect = null;
+  },
+
+  updateSliderPosition(touch) {
+    const rect = this.data.sliderRect;
+    if (!rect) return;
+
+    // 计算滑块位置百分比 (0-100)
+    let position = ((touch.clientX - rect.left) / rect.width) * 100;
+    position = this.clamp(position, 0, 100);
+
+    // 更新滑块位置
+    this.setData({
+      sliderPosition: position
+    });
+
+    // 实时反馈当前状态（可以添加更多的反馈）
+    console.log('滑杆位置:', position.toFixed(1) + '%');
   }
 });
