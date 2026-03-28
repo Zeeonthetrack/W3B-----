@@ -200,10 +200,6 @@ page {
 
 /* 左侧新增按键区样式 */
 .left-buttons-container {
-  position: absolute;
-  left: 7.5vw;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 3.8vh;
@@ -218,10 +214,6 @@ page {
 
 /* 右侧新增按键区样式 */
 .right-buttons-container {
-  position: absolute;
-  right: 7.5vw;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 3.8vh;
@@ -232,6 +224,26 @@ page {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* 中间区域的控制区定位 */
+.middle-section .control-zone {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.middle-section .control-zone[data-key="leftButtons"] {
+  left: 7.5vw;
+}
+
+.middle-section .control-zone[data-key="rightButtons"] {
+  right: 7.5vw;
+}
+
+.middle-section .control-zone[data-key="logContainer"] {
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* 黄色和蓝色功能按钮样式 */
@@ -397,11 +409,50 @@ page {
   gap: 2vw;
 }
 
+/* 编辑模式提示 */
+.edit-mode-hint {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  pointer-events: none;
+  animation: hintPulse 2s ease-in-out infinite;
+}
+
+.hint-text {
+  font-size: 1.1em;
+  color: rgba(255, 235, 59, 0.9);
+  font-weight: 500;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1.5vh 4vw;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 235, 59, 0.3);
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
 .editing-zone {
-  border: 1px dashed rgba(255, 235, 59, 0.7);
-  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 235, 59, 0.8);
+  background: rgba(255, 235, 59, 0.05);
   border-radius: 16px;
-  z-index: 50; /* Bring to top when editing */
+  z-index: 50;
+  animation: editZoneGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes editZoneGlow {
+  0%, 100% { 
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.2),
+                inset 0 0 10px rgba(255, 235, 59, 0.1);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(255, 235, 59, 0.4),
+                inset 0 0 15px rgba(255, 235, 59, 0.15);
+  }
 }
 
 .edit-mask {
@@ -410,8 +461,13 @@ page {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10; /* Above content */
+  z-index: 10;
   background: transparent;
+}
+
+/* 为中间区域的可编辑组件添加定位支持 */
+.middle-section {
+  position: relative;
 }
 
 .left-zone, .right-zone { flex: 0 0 33vw; }
@@ -1100,6 +1156,13 @@ page {
   justify-content: center;
   background: rgba(0, 0, 0, 0.3);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.slider-section .control-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .slider-container {

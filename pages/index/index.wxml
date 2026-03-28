@@ -46,50 +46,86 @@ module.exports = {
       <view class="edit-toolbar" wx:if="{{isEditMode}}">
         <view class="glass-btn warning" bindtap="restoreDefaultLayout">重置</view>
         <view class="glass-btn primary" bindtap="saveLayout">保存</view>
+        <view class="glass-icon-btn" bindtap="toggleEditMode">✕</view>
       </view>
     </view>
+  </view>
+  
+  <!-- 编辑模式提示 -->
+  <view class="edit-mode-hint" wx:if="{{isEditMode}}">
+    <text class="hint-text">单指拖动移动位置 · 双指缩放调整大小</text>
   </view>
 
   <!-- 中间日志显示区 (40vh) -->
   <view class="middle-section">
     <!-- 左侧新增按键区 -->
-    <view class="left-buttons-container">
-      <view class="left-btn-item">
-        <view class="function-btn red {{btnLeftA?'active':''}}" data-color="leftA" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}" style="position: relative; left: 189rpx; top: 89rpx">
-          <text class="btn-label">A</text>
+    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+          style="transform: translate({{layout.leftButtons.x}}px, {{layout.leftButtons.y}}px) scale({{layout.leftButtons.scale}});"
+          data-key="leftButtons"
+          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
+          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
+          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+      
+      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      
+      <view class="left-buttons-container">
+        <view class="left-btn-item">
+          <view class="function-btn red {{btnLeftA?'active':''}}" data-color="leftA" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+            <text class="btn-label">A</text>
+          </view>
         </view>
-      </view>
-      <view class="left-btn-item">
-        <view class="function-btn green {{btnLeftB?'active':''}}" data-color="leftB" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}" style="position: relative; left: 188rpx; top: 90rpx">
-          <text class="btn-label">B</text>
+        <view class="left-btn-item">
+          <view class="function-btn green {{btnLeftB?'active':''}}" data-color="leftB" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+            <text class="btn-label">B</text>
+          </view>
         </view>
       </view>
     </view>
     
     <!-- 右侧新增按键区 -->
-    <view class="right-buttons-container">
-      <view class="right-btn-item">
-        <view class="function-btn yellow {{btnRightC?'active':''}}" data-color="rightC" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}" style="position: relative; left: -175rpx; top: 89rpx">
-          <text class="btn-label">C</text>
+    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+          style="transform: translate({{layout.rightButtons.x}}px, {{layout.rightButtons.y}}px) scale({{layout.rightButtons.scale}});"
+          data-key="rightButtons"
+          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
+          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
+          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+      
+      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      
+      <view class="right-buttons-container">
+        <view class="right-btn-item">
+          <view class="function-btn yellow {{btnRightC?'active':''}}" data-color="rightC" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+            <text class="btn-label">C</text>
+          </view>
         </view>
-      </view>
-      <view class="right-btn-item">
-        <view class="function-btn blue {{btnRightD?'active':''}}" data-color="rightD" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}" style="position: relative; left: -175rpx; top: 95rpx">
-          <text class="btn-label">D</text>
+        <view class="right-btn-item">
+          <view class="function-btn blue {{btnRightD?'active':''}}" data-color="rightD" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+            <text class="btn-label">D</text>
+          </view>
         </view>
       </view>
     </view>
     
     <!-- 日志容器 -->
-    <view class="log-container glass-panel" bindtap="toggleLogPanel" hover-class="panel-hover">
-      <block wx:if="{{logList.length > 0}}">
-        <view class="log-line highlight">
-          <text class="log-time">{{logList[0].time}}</text>
-          <text class="log-hex">{{logList[0].hex}}</text>
+    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+          style="transform: translate({{layout.logContainer.x}}px, {{layout.logContainer.y}}px) scale({{layout.logContainer.scale}});"
+          data-key="logContainer"
+          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
+          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
+          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+      
+      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      
+      <view class="log-container glass-panel" bindtap="{{!isEditMode ? 'toggleLogPanel' : ''}}" hover-class="panel-hover">
+        <block wx:if="{{logList.length > 0}}">
+          <view class="log-line highlight">
+            <text class="log-time">{{logList[0].time}}</text>
+            <text class="log-hex">{{logList[0].hex}}</text>
+          </view>
+        </block>
+        <view class="log-empty" wx:else>
+          <text>暂无数据日志</text>
         </view>
-      </block>
-      <view class="log-empty" wx:else>
-        <text>暂无数据日志</text>
       </view>
     </view>
 
@@ -119,7 +155,7 @@ module.exports = {
   <view class="bottom-section">
     <!-- 左摇杆区 (33vw) -->
     <view class="control-zone joystick-zone left-zone {{isEditMode ? 'editing-zone' : ''}}"
-          style="transform: translate({{layout.leftJoystick.x}}px, {{layout.leftJoystick.y}}px) scale({{layout.leftJoystick.scale}}); position: relative; left: 21rpx; top: 25rpx"
+          style="transform: translate({{layout.leftJoystick.x}}px, {{layout.leftJoystick.y}}px) scale({{layout.leftJoystick.scale}});"
           data-key="leftJoystick"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
@@ -129,7 +165,7 @@ module.exports = {
       <view class="edit-mask" wx:if="{{isEditMode}}"></view>
 
       <view class="joystick-value">
-        <text style="position: relative; left: 0rpx; top: -42rpx">L: {{leftSpeed}}</text>
+        <text>L: {{leftSpeed}}</text>
       </view>
       <view 
         class="joystick-area"
@@ -140,7 +176,7 @@ module.exports = {
         bindtouchend="{{!isEditMode ? 'onJoystickEnd' : ''}}"
         bindtouchcancel="{{!isEditMode ? 'onJoystickEnd' : ''}}"
       >
-        <view class="joystick-base" style="position: relative; left: -3rpx; top: -31rpx; width: 119rpx; height: 88rpx; display: block; box-sizing: border-box">
+        <view class="joystick-base">
           <view class="joystick-stick" style="transform: translate({{leftStick.x}}px, {{leftStick.y}}px);"></view>
         </view>
       </view>
@@ -148,7 +184,7 @@ module.exports = {
 
     <!-- 中间按钮区 (34vw) -->
     <view class="control-zone buttons-zone {{isEditMode ? 'editing-zone' : ''}}"
-          style="transform: translate({{layout.buttons.x}}px, {{layout.buttons.y}}px) scale({{layout.buttons.scale}}); position: relative; left: -1rpx; top: -19rpx"
+          style="transform: translate({{layout.buttons.x}}px, {{layout.buttons.y}}px) scale({{layout.buttons.scale}});"
           data-key="buttons"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
@@ -206,24 +242,34 @@ module.exports = {
 
   <!-- 底部滑杆区 -->
   <view class="slider-section">
-    <view class="slider-container">
-      <!-- 滑杆左侧文字 -->
-      <text class="slider-label slider-left-label">收</text>
+    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+          style="transform: translate({{layout.slider.x}}px, {{layout.slider.y}}px) scale({{layout.slider.scale}});"
+          data-key="slider"
+          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
+          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
+          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <!-- 滑杆轨道 -->
-      <view class="slider-track" catchtouchstart="onSliderStart" catchtouchmove="onSliderMove" catchtouchend="onSliderEnd" catchtouchcancel="onSliderEnd">
-        <!-- 滑杆轨道线 -->
-        <view class="slider-track-line"></view>
+      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      
+      <view class="slider-container">
+        <!-- 滑杆左侧文字 -->
+        <text class="slider-label slider-left-label">收</text>
         
-        <!-- 滑杆滑块 -->
-        <view class="slider-thumb" style="left: {{sliderPosition}}%;">
-          <!-- 滑块上方文字 -->
-          <text class="slider-thumb-text">斗</text>
+        <!-- 滑杆轨道 -->
+        <view class="slider-track" catchtouchstart="{{!isEditMode ? 'onSliderStart' : ''}}" catchtouchmove="{{!isEditMode ? 'onSliderMove' : ''}}" catchtouchend="{{!isEditMode ? 'onSliderEnd' : ''}}" catchtouchcancel="{{!isEditMode ? 'onSliderEnd' : ''}}">
+          <!-- 滑杆轨道线 -->
+          <view class="slider-track-line"></view>
+          
+          <!-- 滑杆滑块 -->
+          <view class="slider-thumb" style="left: {{sliderPosition}}%;">
+            <!-- 滑块上方文字 -->
+            <text class="slider-thumb-text">斗</text>
+          </view>
         </view>
+        
+        <!-- 滑杆右侧文字 -->
+        <text class="slider-label slider-right-label">倒</text>
       </view>
-      
-      <!-- 滑杆右侧文字 -->
-      <text class="slider-label slider-right-label">倒</text>
     </view>
   </view>
 

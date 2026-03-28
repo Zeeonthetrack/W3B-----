@@ -66,14 +66,18 @@ Page({
 
     // --- Custom Layout Mode Data ---
     isEditMode: false,
-    activeElement: null, // 'leftJoystick', 'rightJoystick', 'buttons'
+    activeElement: null,
     layout: {
       leftJoystick: { x: 0, y: 0, scale: 1 },
       rightJoystick: { x: 0, y: 0, scale: 1 },
-      buttons: { x: 0, y: 0, scale: 1 }
+      buttons: { x: 0, y: 0, scale: 1 },
+      leftButtons: { x: 0, y: 0, scale: 1 },
+      rightButtons: { x: 0, y: 0, scale: 1 },
+      logContainer: { x: 0, y: 0, scale: 1 },
+      slider: { x: 0, y: 0, scale: 1 }
     },
-    initialLayout: null, // To store initial state when drag starts
-    touchStart: null, // { x, y } or distance for pinch
+    initialLayout: null,
+    touchStart: null,
   },
 
   onLoad() {
@@ -82,10 +86,22 @@ Page({
     
     const that = this;
     
-    // Load custom layout
+    // Load custom layout with backward compatibility
     const savedLayout = wx.getStorageSync('customLayout');
     if (savedLayout) {
-      that.setData({ layout: savedLayout });
+      // 合并新组件的默认值，确保向后兼容
+      const defaultLayout = {
+        leftJoystick: { x: 0, y: 0, scale: 1 },
+        rightJoystick: { x: 0, y: 0, scale: 1 },
+        buttons: { x: 0, y: 0, scale: 1 },
+        leftButtons: { x: 0, y: 0, scale: 1 },
+        rightButtons: { x: 0, y: 0, scale: 1 },
+        logContainer: { x: 0, y: 0, scale: 1 },
+        slider: { x: 0, y: 0, scale: 1 }
+      };
+      // 合并保存的布局和默认布局，确保所有组件都有值
+      const mergedLayout = { ...defaultLayout, ...savedLayout };
+      that.setData({ layout: mergedLayout });
     }
     
     // Load app state for crash recovery
@@ -1181,15 +1197,20 @@ Page({
   },
 
   restoreDefaultLayout() {
+    // 清除保存的布局数据
+    wx.removeStorageSync('customLayout');
     this.setData({
       layout: {
         leftJoystick: { x: 0, y: 0, scale: 1 },
         rightJoystick: { x: 0, y: 0, scale: 1 },
-        buttons: { x: 0, y: 0, scale: 1 }
+        buttons: { x: 0, y: 0, scale: 1 },
+        leftButtons: { x: 0, y: 0, scale: 1 },
+        rightButtons: { x: 0, y: 0, scale: 1 },
+        logContainer: { x: 0, y: 0, scale: 1 },
+        slider: { x: 0, y: 0, scale: 1 }
       }
     });
-    // Optional: remove storage now or wait for save
-    // wx.removeStorageSync('customLayout'); 
+    wx.showToast({ title: '布局已重置' });
   },
 
   clamp(value, min, max) {
