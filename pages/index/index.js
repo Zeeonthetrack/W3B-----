@@ -38,6 +38,9 @@ Page({
     // 滑杆相关状态
     sliderPosition: 50, // 默认中间位置 (0-100%)
     sliderRect: null,
+    
+    // 普/麦开关状态
+    puMaiSwitch: false, // false=普, true=麦
 
     leftStick: { x: 0, y: 0 },
     rightStick: { x: 0, y: 0 },
@@ -66,7 +69,7 @@ Page({
 
     // --- Custom Layout Mode Data ---
     isEditMode: false,
-    activeElement: null,
+    selectedElement: null, // 当前选中的组件
     layout: {
       leftJoystick: { x: 0, y: 0, scale: 1 },
       rightJoystick: { x: 0, y: 0, scale: 1 },
@@ -74,10 +77,17 @@ Page({
       leftButtons: { x: 0, y: 0, scale: 1 },
       rightButtons: { x: 0, y: 0, scale: 1 },
       logContainer: { x: 0, y: 0, scale: 1 },
-      slider: { x: 0, y: 0, scale: 1 }
+      slider: { x: 0, y: 0, scale: 1 },
+      puMaiSwitch: { x: 0, y: 0, scale: 1 }
     },
-    initialLayout: null,
-    touchStart: null,
+    dragState: null, // 拖拽状态
+    scaleSliderPosition: 50, // 尺寸滑杆位置 (0-100)
+    scaleRect: null, // 尺寸滑杆区域
+    // 组件配置
+    componentConfig: {
+      minScale: 0.5,
+      maxScale: 2.5
+    }
   },
 
   onLoad() {
@@ -97,7 +107,8 @@ Page({
         leftButtons: { x: 0, y: 0, scale: 1 },
         rightButtons: { x: 0, y: 0, scale: 1 },
         logContainer: { x: 0, y: 0, scale: 1 },
-        slider: { x: 0, y: 0, scale: 1 }
+        slider: { x: 0, y: 0, scale: 1 },
+        puMaiSwitch: { x: 0, y: 0, scale: 1 }
       };
       // 合并保存的布局和默认布局，确保所有组件都有值
       const mergedLayout = { ...defaultLayout, ...savedLayout };
@@ -1105,89 +1116,124 @@ Page({
 
   // --- Layout Customization ---
   toggleEditMode() {
-    this.setData({ isEditMode: !this.data.isEditMode });
+    this.setData({ 
+      isEditMode: !this.data.isEditMode,
+      selectedElement: null,
+      scaleSliderPosition: 50
+    });
   },
 
-  // Handle Drag & Pinch Scale
-  onLayoutTouchStart(e) {
+  // 点击选择组件
+  onSelectComponent(e) {
     if (!this.data.isEditMode) return;
     const key = e.currentTarget.dataset.key;
-    const touches = e.touches;
     
-    if (touches.length === 1) {
-       // Drag Start
-       this.dragState = {
-         mode: 'drag',
-         key: key,
-         startX: touches[0].clientX,
-         startY: touches[0].clientY,
-         initialX: this.data.layout[key].x,
-         initialY: this.data.layout[key].y
-       };
-    } else if (touches.length >= 2) {
-       // Pinch Start
-       const x1 = touches[0].clientX;
-       const y1 = touches[0].clientY;
-       const x2 = touches[1].clientX;
-       const y2 = touches[1].clientY;
-       const dist = Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
-       
-       this.dragState = {
-         mode: 'scale',
-         key: key,
-         startDist: dist,
-         initialScale: this.data.layout[key].scale
-       };
+    // 如果点击的是已选中的组件，则取消选中
+    if (this.data.selectedElement === key) {
+      this.setData({ selectedElement: null });
+    } else {
+      // 选中新组件，并计算滑杆位置
+      const scale = this.data.layout[key].scale;
+      const minScale = this.data.componentConfig.minScale;
+      const maxScale = this.data.componentConfig.maxScale;
+      const sliderPos = ((scale - minScale) / (maxScale - minScale)) * 100;
+      
+      this.setData({ 
+        selectedElement: key,
+        scaleSliderPosition: this.clamp(sliderPos, 0, 100)
+      });
     }
   },
 
+  // 组件拖动开始
+  onLayoutTouchStart(e) {
+    if (!this.data.isEditMode) return;
+    const key = e.currentTarget.dataset.key;
+    
+    // 只有选中的组件才能拖动
+    if (this.data.selectedElement !== key) return;
+    
+    const touches = e.touches;
+    if (touches.length === 1) {
+      this.dragState = {
+        key: key,
+        startX: touches[0].clientX,
+        startY: touches[0].clientY,
+        initialX: this.data.layout[key].x,
+        initialY: this.data.layout[key].y
+      };
+    }
+  },
+
+  // 组件拖动中
   onLayoutTouchMove(e) {
     if (!this.data.isEditMode || !this.dragState) return;
     const touches = e.touches;
     const key = this.dragState.key;
     
-    // Check if mode changed (e.g. 1 finger -> 2 fingers)
-    if (this.dragState.mode === 'drag' && touches.length >= 2) {
-        // Switch to scale logic immediately or just ignore. 
-        // Better to ignore or reset. Let's restart logic for simplicity:
-        // just return to avoid jumpiness.
-        return;
-    }
-
-    if (this.dragState.mode === 'drag' && touches.length === 1) {
-      const dx = touches[0].clientX - this.dragState.startX;
-      const dy = touches[0].clientY - this.dragState.startY;
-      const newX = this.dragState.initialX + dx;
-      const newY = this.dragState.initialY + dy;
-      
-      this.setData({
-        [`layout.${key}.x`]: newX,
-        [`layout.${key}.y`]: newY
-      });
-    } else if (this.dragState.mode === 'scale' && touches.length >= 2) {
-       const x1 = touches[0].clientX;
-       const y1 = touches[0].clientY;
-       const x2 = touches[1].clientX;
-       const y2 = touches[1].clientY;
-       const dist = Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
-       
-       if (this.dragState.startDist > 0) {
-         const scale = this.dragState.initialScale * (dist / this.dragState.startDist);
-         // Clamp scale
-         const clamped = Math.max(0.5, Math.min(2.5, scale));
-         this.setData({
-           [`layout.${key}.scale`]: clamped
-         });
-       }
-    }
+    // 只有选中的组件且单指才能拖动
+    if (this.data.selectedElement !== key || touches.length !== 1) return;
+    
+    const dx = touches[0].clientX - this.dragState.startX;
+    const dy = touches[0].clientY - this.dragState.startY;
+    const newX = this.dragState.initialX + dx;
+    const newY = this.dragState.initialY + dy;
+    
+    this.setData({
+      [`layout.${key}.x`]: newX,
+      [`layout.${key}.y`]: newY
+    });
   },
 
+  // 组件拖动结束
   onLayoutTouchEnd(e) {
     if (!this.data.isEditMode) return;
-    // If all fingers lifted, reset state
     if (e.touches.length === 0) {
       this.dragState = null;
     }
+  },
+
+  // 尺寸滑杆触摸开始
+  onScaleTouchStart(e) {
+    if (!this.data.isEditMode || !this.data.selectedElement) return;
+    const query = wx.createSelectorQuery();
+    query.select('.scale-track').boundingClientRect();
+    query.exec((res) => {
+      if (res[0]) {
+        this.data.scaleRect = res[0];
+        this.updateScaleFromTouch(e.touches[0]);
+      }
+    });
+  },
+
+  // 尺寸滑杆拖动中
+  onScaleTouchMove(e) {
+    if (!this.data.isEditMode || !this.data.selectedElement || !this.data.scaleRect) return;
+    this.updateScaleFromTouch(e.touches[0]);
+  },
+
+  // 尺寸滑杆拖动结束
+  onScaleTouchEnd(e) {
+    this.data.scaleRect = null;
+  },
+
+  // 从触摸位置更新组件大小
+  updateScaleFromTouch(touch) {
+    const rect = this.data.scaleRect;
+    const key = this.data.selectedElement;
+    if (!rect || !key) return;
+
+    let position = ((touch.clientX - rect.left) / rect.width) * 100;
+    position = this.clamp(position, 0, 100);
+    
+    const minScale = this.data.componentConfig.minScale;
+    const maxScale = this.data.componentConfig.maxScale;
+    const newScale = minScale + (position / 100) * (maxScale - minScale);
+    
+    this.setData({
+      scaleSliderPosition: position,
+      [`layout.${key}.scale`]: newScale
+    });
   },
 
   saveLayout() {
@@ -1207,7 +1253,8 @@ Page({
         leftButtons: { x: 0, y: 0, scale: 1 },
         rightButtons: { x: 0, y: 0, scale: 1 },
         logContainer: { x: 0, y: 0, scale: 1 },
-        slider: { x: 0, y: 0, scale: 1 }
+        slider: { x: 0, y: 0, scale: 1 },
+        puMaiSwitch: { x: 0, y: 0, scale: 1 }
       }
     });
     wx.showToast({ title: '布局已重置' });
@@ -1215,6 +1262,14 @@ Page({
 
   clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  },
+
+  // --- 普/麦开关方法 ---
+  togglePuMaiSwitch() {
+    this.setData({
+      puMaiSwitch: !this.data.puMaiSwitch
+    });
+    console.log('普/麦开关:', this.data.puMaiSwitch ? '麦' : '普');
   },
 
   // --- Slider Methods ---

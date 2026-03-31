@@ -11,7 +11,7 @@ module.exports = {
 }
 </wxs>
 
-<view class="container font-{{settings.fontSize}}">
+<view class="container font-{{settings.fontSize}} {{isEditMode ? 'edit-mode-active' : ''}}">
   <!-- 自定义导航栏 -->
   <view class="custom-nav-bar" style="height: {{navBarHeight}}px;">
     <view class="nav-bar-title">W3B蓝牙遥控器</view>
@@ -51,22 +51,37 @@ module.exports = {
     </view>
   </view>
   
+  <!-- 编辑模式控制面板 -->
+  <view class="edit-control-panel" wx:if="{{isEditMode && selectedElement}}">
+    <view class="panel-title">调整组件大小</view>
+    <view class="scale-slider-container">
+      <text class="slider-min">小</text>
+      <view class="scale-track" catchtouchstart="onScaleTouchStart" catchtouchmove="onScaleTouchMove" catchtouchend="onScaleTouchEnd">
+        <view class="scale-track-line"></view>
+        <view class="scale-thumb" style="left: {{scaleSliderPosition}}%;"></view>
+      </view>
+      <text class="slider-max">大</text>
+    </view>
+    <view class="scale-value">当前大小: {{layout[selectedElement].scale.toFixed(2)}}x</view>
+  </view>
+  
   <!-- 编辑模式提示 -->
   <view class="edit-mode-hint" wx:if="{{isEditMode}}">
-    <text class="hint-text">单指拖动移动位置 · 双指缩放调整大小</text>
+    <text class="hint-text">点击选择组件 · 拖动移动位置</text>
   </view>
 
   <!-- 中间日志显示区 (40vh) -->
   <view class="middle-section">
     <!-- 左侧新增按键区 -->
-    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+    <view class="control-zone {{isEditMode && selectedElement === 'leftButtons' ? 'selected-zone' : ''}}"
           style="transform: translate({{layout.leftButtons.x}}px, {{layout.leftButtons.y}}px) scale({{layout.leftButtons.scale}});"
           data-key="leftButtons"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'leftButtons'}}"></view>
       
       <view class="left-buttons-container">
         <view class="left-btn-item">
@@ -83,14 +98,15 @@ module.exports = {
     </view>
     
     <!-- 右侧新增按键区 -->
-    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+    <view class="control-zone {{isEditMode && selectedElement === 'rightButtons' ? 'selected-zone' : ''}}"
           style="transform: translate({{layout.rightButtons.x}}px, {{layout.rightButtons.y}}px) scale({{layout.rightButtons.scale}});"
           data-key="rightButtons"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'rightButtons'}}"></view>
       
       <view class="right-buttons-container">
         <view class="right-btn-item">
@@ -107,14 +123,15 @@ module.exports = {
     </view>
     
     <!-- 日志容器 -->
-    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+    <view class="control-zone {{isEditMode && selectedElement === 'logContainer' ? 'selected-zone' : ''}}"
           style="transform: translate({{layout.logContainer.x}}px, {{layout.logContainer.y}}px) scale({{layout.logContainer.scale}});"
           data-key="logContainer"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'logContainer'}}"></view>
       
       <view class="log-container glass-panel" bindtap="{{!isEditMode ? 'toggleLogPanel' : ''}}" hover-class="panel-hover">
         <block wx:if="{{logList.length > 0}}">
@@ -154,15 +171,16 @@ module.exports = {
   <!-- 底部操控区 (40vh) -->
   <view class="bottom-section">
     <!-- 左摇杆区 (33vw) -->
-    <view class="control-zone joystick-zone left-zone {{isEditMode ? 'editing-zone' : ''}}"
+    <view class="control-zone joystick-zone left-zone {{isEditMode && selectedElement === 'leftJoystick' ? 'selected-zone' : ''}}"
           style="transform: translate({{layout.leftJoystick.x}}px, {{layout.leftJoystick.y}}px) scale({{layout.leftJoystick.scale}});"
           data-key="leftJoystick"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
       <!-- Edit Overlay Mask -->
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'leftJoystick'}}"></view>
 
       <view class="joystick-value">
         <text>L: {{leftSpeed}}</text>
@@ -183,14 +201,15 @@ module.exports = {
     </view>
 
     <!-- 中间按钮区 (34vw) -->
-    <view class="control-zone buttons-zone {{isEditMode ? 'editing-zone' : ''}}"
+    <view class="control-zone buttons-zone {{isEditMode && selectedElement === 'buttons' ? 'selected-zone' : ''}}"
           style="transform: translate({{layout.buttons.x}}px, {{layout.buttons.y}}px) scale({{layout.buttons.scale}});"
           data-key="buttons"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'buttons'}}"></view>
 
       <view class="dpad-container">
         <view class="dpad-row">
@@ -211,15 +230,36 @@ module.exports = {
       </view>
     </view>
 
-    <!-- 右摇杆区 (33vw) -->
-    <view class="control-zone joystick-zone right-zone {{isEditMode ? 'editing-zone' : ''}}"
-          style="transform: translate({{layout.rightJoystick.x}}px, {{layout.rightJoystick.y}}px) scale({{layout.rightJoystick.scale}});"
-          data-key="rightJoystick"
+    <!-- 普/麦开关区 -->
+    <view class="control-zone pu-mai-zone {{isEditMode && selectedElement === 'puMaiSwitch' ? 'selected-zone' : ''}}"
+          style="transform: translate({{layout.puMaiSwitch.x}}px, {{layout.puMaiSwitch.y}}px) scale({{layout.puMaiSwitch.scale}});"
+          data-key="puMaiSwitch"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'puMaiSwitch'}}"></view>
+
+      <!-- 普/麦开关 -->
+      <view class="pu-mai-switch-container" wx:if="{{!isEditMode}}">
+        <view class="pu-mai-switch {{puMaiSwitch?'active':''}}" bindtap="togglePuMaiSwitch">
+          <view class="switch-track"></view>
+          <view class="switch-thumb"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 右摇杆区 (33vw) -->
+    <view class="control-zone joystick-zone right-zone {{isEditMode && selectedElement === 'rightJoystick' ? 'selected-zone' : ''}}"
+          style="transform: translate({{layout.rightJoystick.x}}px, {{layout.rightJoystick.y}}px) scale({{layout.rightJoystick.scale}});"
+          data-key="rightJoystick"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
+          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
+          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
+          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+      
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'rightJoystick'}}"></view>
 
       <view class="joystick-value">
         <text>R: {{rightSpeed}}</text>
@@ -242,14 +282,15 @@ module.exports = {
 
   <!-- 底部滑杆区 -->
   <view class="slider-section">
-    <view class="control-zone {{isEditMode ? 'editing-zone' : ''}}"
+    <view class="control-zone {{isEditMode && selectedElement === 'slider' ? 'selected-zone' : ''}}"
           style="transform: translate({{layout.slider.x}}px, {{layout.slider.y}}px) scale({{layout.slider.scale}});"
           data-key="slider"
+          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
           catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
           catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
           catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
       
-      <view class="edit-mask" wx:if="{{isEditMode}}"></view>
+      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'slider'}}"></view>
       
       <view class="slider-container">
         <!-- 滑杆左侧文字 -->
