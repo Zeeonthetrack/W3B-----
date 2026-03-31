@@ -330,8 +330,8 @@ module.exports = {
         <text class="legend-item">↑/↓/←/→:方向键</text>
         <text class="legend-item">○:中间键</text>
         <text class="legend-item">A/B:左侧功能键</text>
+        <text class="legend-item">C/D:右侧功能键</text>
         <text class="legend-item">X:校验</text>
-        <text class="legend-item">T:尾标</text>
       </view>
       <scroll-view class="panel-content" scroll-y="true">
         <view class="log-item" wx:for="{{logList}}" wx:key="index">

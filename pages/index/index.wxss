@@ -650,13 +650,13 @@ page {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: -1px;
+  gap: 0;
   padding: 1vh;
 }
 
 .dpad-row {
   display: flex;
-  gap: -1px;
+  gap: 0;
 }
 
 .dpad-btn {
@@ -934,135 +934,6 @@ page {
   background: #636366;
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.dpad-btn {
-  width: 8vh;
-  height: 8vh;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  font-weight: bold;
-  background: #000;
-  transition: all 0.1s;
-}
-
-.dpad-btn.active {
-  transform: scale(0.9);
-}
-
-.dpad-btn.red { border-color: #ff4444; color: #ff4444; }
-.dpad-btn.blue { border-color: #4444ff; color: #4444ff; }
-.dpad-btn.green { border-color: #44ff44; color: #44ff44; }
-.dpad-btn.yellow { border-color: #ffff44; color: #ffff44; }
-
-.dpad-btn.red.active { background: #ff4444; color: #fff; }
-.dpad-btn.blue.active { background: #4444ff; color: #fff; }
-.dpad-btn.green.active { background: #44ff44; color: #fff; }
-.dpad-btn.yellow.active { background: #ffff44; color: #000; }
-
-/* ========== 日志悬浮窗 ========== */
-.log-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 500;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.log-panel {
-  width: 85vw;
-  max-width: 400px;
-  max-height: 60vh;
-  background: #1a1a1a;
-  border-radius: 12px;
-  border: 1px solid #333;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.log-panel-header {
-  height: 5vh;
-  background: #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 3vw;
-  font-size: 1.1em;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.log-panel-btns {
-  display: flex;
-  align-items: center;
-  gap: 3vw;
-}
-
-.log-panel-clear {
-  font-size: 0.9em;
-  color: #00ffff;
-  text-decoration: underline;
-}
-
-.log-panel-close {
-  font-size: 1.25em;
-  color: #888;
-}
-
-.log-panel-scroll {
-  flex: 1;
-  padding: 1.5vh 3vw;
-  max-height: 50vh;
-}
-
-.log-item {
-  font-size: 0.9em;
-  display: flex;
-  gap: 2vw;
-  font-family: monospace;
-  margin-bottom: 0.8vh;
-}
-
-.log-item .time {
-  color: #666;
-}
-
-.log-item .hex {
-  color: #00ff00;
-}
-
-.log-empty {
-  text-align: center;
-  padding: 3vh 0;
-  color: #666;
-  font-size: 1em;
-}
-
-/* Cleaned up old styles */
-.settings-input {
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 1vh 2vw;
-  color: #fff;
-  font-size: 1em;
-  width: 45%;
-  text-align: right;
 }
 
 /* ========== 自定义数字键盘样式 ========== */

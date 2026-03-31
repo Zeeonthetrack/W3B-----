@@ -2,9 +2,10 @@
 const SERVICE_UUID = "0000FFE0-0000-1000-8000-00805F9B34FB";
 const CHAR_UUID = "0000FFE1-0000-1000-8000-00805F9B34FB";
 
-// 可能的其他常用UUID配置（用于调试）
-const ALTERNATE_SERVICE_UUID = "00001800-0000-1000-8000-00805F9B34FB";
-const ALTERNATE_CHAR_UUID = "00002A00-0000-1000-8000-00805F9B34FB";
+// 全局监听器引用，防止重复注册导致内存泄漏
+let _bleConnectionListener = null;
+let _bleCharChangeListener = null;
+let _bluetoothDeviceFoundListener = null;
 
 Page({
   data: {
@@ -94,102 +95,77 @@ Page({
     this.padRect = { left: null, right: null };
     this.activeTouches = { left: null, right: null };
     
-    const that = this;
+    // 默认布局定义
+    const defaultLayout = {
+      leftJoystick: { x: 0, y: 0, scale: 1 },
+      rightJoystick: { x: 0, y: 0, scale: 1 },
+      buttons: { x: 0, y: 0, scale: 1 },
+      leftButtons: { x: 0, y: 0, scale: 1 },
+      rightButtons: { x: 0, y: 0, scale: 1 },
+      logContainer: { x: 0, y: 0, scale: 1 },
+      slider: { x: 0, y: 0, scale: 1 },
+      puMaiSwitch: { x: 0, y: 0, scale: 1 }
+    };
     
-    // Load custom layout with backward compatibility
+    // 加载自定义布局
     const savedLayout = wx.getStorageSync('customLayout');
     if (savedLayout) {
-      // 合并新组件的默认值，确保向后兼容
-      const defaultLayout = {
-        leftJoystick: { x: 0, y: 0, scale: 1 },
-        rightJoystick: { x: 0, y: 0, scale: 1 },
-        buttons: { x: 0, y: 0, scale: 1 },
-        leftButtons: { x: 0, y: 0, scale: 1 },
-        rightButtons: { x: 0, y: 0, scale: 1 },
-        logContainer: { x: 0, y: 0, scale: 1 },
-        slider: { x: 0, y: 0, scale: 1 },
-        puMaiSwitch: { x: 0, y: 0, scale: 1 }
-      };
-      // 合并保存的布局和默认布局，确保所有组件都有值
-      const mergedLayout = { ...defaultLayout, ...savedLayout };
-      that.setData({ layout: mergedLayout });
+      this.setData({ layout: { ...defaultLayout, ...savedLayout } });
     }
     
-    // Load app state for crash recovery
+    // 加载崩溃恢复状态
     const savedState = wx.getStorageSync('appState');
     if (savedState) {
-      // Restore important state except for temporary UI states
       const { lastDeviceId, settings } = savedState;
       if (lastDeviceId) {
-        that.setData({ lastDeviceId });
+        this.setData({ lastDeviceId });
       }
       if (settings) {
-        // 向后兼容处理：将原来的useBinary转换为sendMode
-        if (settings.hasOwnProperty('useBinary')) {
-          settings.sendMode = settings.useBinary ? 'binary' : 'text';
-          delete settings.useBinary;
-        }
-        // 如果没有sendMode，则默认为text
-        if (!settings.hasOwnProperty('sendMode')) {
-          settings.sendMode = 'text';
-        }
-        // 如果没有sendInterval，或者值为默认的50，使用新的默认值100
-        if (!settings.hasOwnProperty('sendInterval') || settings.sendInterval === 50) {
-          settings.sendInterval = 100;
-        }
-        that.setData({ settings });
+        this.setData({ settings: this._normalizeSettings(settings) });
       }
     }
     
+    // 计算导航栏高度
     const systemInfo = wx.getSystemInfoSync();
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
     const navBarHeight = (menuButtonInfo.height + (menuButtonInfo.top - systemInfo.statusBarHeight) * 2) * 1.2;
+    this.setData({ navBarHeight, menuButtonInfo });
     
-    that.setData({
-      navBarHeight: navBarHeight,
-      menuButtonInfo: menuButtonInfo
-    });
-    
+    // 加载用户设置并启动发送循环
     wx.getStorage({
       key: 'userSettings',
-      success (res) {
-        if(res.data) {
-          // 向后兼容处理：将原来的useBinary转换为sendMode
-          const settings = res.data;
-          if (settings.hasOwnProperty('useBinary')) {
-            settings.sendMode = settings.useBinary ? 'binary' : 'text';
-            delete settings.useBinary;
-          }
-          // 如果没有sendMode，则默认为text
-          if (!settings.hasOwnProperty('sendMode')) {
-            settings.sendMode = 'text';
-          }
-          // 如果没有sendInterval，或者值为默认的50，使用新的默认值100
-          if (!settings.hasOwnProperty('sendInterval') || settings.sendInterval === 50) {
-            settings.sendInterval = 100;
-          }
-          that.setData({ settings: settings });
-        } else {
-          // 如果没有保存的设置，使用默认值100
-          that.setData({
-            'settings.sendInterval': 100
-          });
+      success: (res) => {
+        if (res.data) {
+          this.setData({ settings: this._normalizeSettings(res.data) });
         }
-        that.startSendLoop();
+        this.startSendLoop();
       },
-      fail () {
-        // 读取失败时，确保使用默认值100
-        that.setData({
-          'settings.sendInterval': 100
-        });
-        that.startSendLoop();
+      fail: () => {
+        this.setData({ 'settings.sendInterval': 100 });
+        this.startSendLoop();
       }
     });
 
     this.initBluetooth();
-    
-    // Start auto-save timer
     this.startAutoSave();
+  },
+
+  // 统一设置兼容性处理，避免重复代码
+  _normalizeSettings(settings) {
+    if (!settings) return settings;
+    // 旧版useBinary转sendMode
+    if (settings.hasOwnProperty('useBinary')) {
+      settings.sendMode = settings.useBinary ? 'binary' : 'text';
+      delete settings.useBinary;
+    }
+    if (!settings.sendMode) {
+      settings.sendMode = 'text';
+    }
+    // 修正旧的默认间隔
+    if (!settings.sendInterval || settings.sendInterval === 50) {
+      settings.sendInterval = 100;
+    }
+    return settings;
   },
 
   onReady() {
@@ -205,7 +181,7 @@ Page({
 
   startSendLoop() {
     this.stopSendLoop();
-    const interval = this.data.settings.sendInterval || 50;
+    const interval = this.data.settings.sendInterval || 100;
     this.data.sendTimer = setInterval(() => {
       this.sendPacketTask();
     }, interval);
@@ -242,47 +218,17 @@ Page({
       layout: this.data.layout
     };
     wx.setStorageSync('appState', stateToSave);
-    console.log('自动保存状态成功');
   },
 
   sendPacketTask() {
-    // 减少日志输出，只在调试模式下输出
-    // console.log("=== 开始发送数据包 ===");
-    // console.log("连接状态:", this.data.isConnected);
-    // console.log("特征值ID:", this.data.writeCharacteristicId);
-    // console.log("服务ID:", this.data.serviceId);
-    
-    // Always calculate bytes based on current speed
     const leftByte = this.mapSpeedToByte(this.data.leftSpeed);
     const rightByte = this.mapSpeedToByte(this.data.rightSpeed);
-    
-    // console.log("速度值:", this.data.leftSpeed, this.data.rightSpeed);
-    // console.log("映射后的字节值:", leftByte, rightByte);
-    
-    // Build packet
     const packet = this.buildPacket(leftByte, rightByte);
-    
-    // console.log("构建的数据包:", packet);
-    // console.log("数据包类型:", typeof packet);
-    
-    // Always log (if binary mode or whatever, logging logic remains)
     this.appendLog(packet);
     
-    // Only write if connected and has writeCharacteristicId
     if (this.data.isConnected && this.data.writeCharacteristicId) {
-      // console.log("开始发送数据...");
       this.writePacket(packet);
-    } else {
-      // 减少错误日志输出频率
-      if (!this.lastSendErrorLog || Date.now() - this.lastSendErrorLog > 1000) {
-        // console.error("发送条件不满足:", {
-        //   isConnected: this.data.isConnected,
-        //   writeCharacteristicId: this.data.writeCharacteristicId
-        // });
-        this.lastSendErrorLog = Date.now();
-      }
     }
-    // console.log("=== 发送数据包结束 ===");
   },
 
   initBluetooth() {
@@ -361,14 +307,18 @@ Page({
 
     this.setData({ deviceList: [], isSearching: true });
 
+    // 移除旧的监听器，防止重复注册
+    if (_bluetoothDeviceFoundListener) {
+      wx.offBluetoothDeviceFound(_bluetoothDeviceFoundListener);
+    }
+
     wx.startBluetoothDevicesDiscovery({
       allowDuplicatesKey: false,
       success: () => {
         wx.showToast({ title: "正在搜索设备...", icon: "loading" });
-        wx.onBluetoothDeviceFound((res) => {
+        _bluetoothDeviceFoundListener = (res) => {
           res.devices.forEach((device) => {
             if (!device.name || device.name.indexOf(this.data.filterDeviceName) === -1) return;
-
             const list = this.data.deviceList;
             const isExist = list.some((item) => item.deviceId === device.deviceId);
             if (!isExist) {
@@ -376,7 +326,8 @@ Page({
               this.setData({ deviceList: list });
             }
           });
-        });
+        };
+        wx.onBluetoothDeviceFound(_bluetoothDeviceFoundListener);
 
         setTimeout(() => {
           this.stopSearch();
@@ -421,7 +372,7 @@ Page({
     wx.createBLEConnection({
       deviceId,
       success: (res) => {
-        console.log("设备连接成功:", res);
+        console.log("设备连接成功:", deviceId);
         
         // 只更新基本连接状态，特征值获取成功后才显示完全连接
         this.setData({
@@ -436,8 +387,11 @@ Page({
           this.getDeviceService(deviceId);
         }, 500);
 
-        wx.onBLEConnectionStateChange((res) => {
-          console.log("连接状态变化:", res);
+        // 移除旧监听器再注册新监听器
+        if (_bleConnectionListener) {
+          wx.offBLEConnectionStateChange(_bleConnectionListener);
+        }
+        _bleConnectionListener = (res) => {
           if (!res.connected) {
             this.setData({
               connectStatus: "连接已断开",
@@ -447,7 +401,8 @@ Page({
             });
             wx.showToast({ title: "连接已断开", icon: "none" });
           }
-        });
+        };
+        wx.onBLEConnectionStateChange(_bleConnectionListener);
       },
       fail: (err) => {
         console.error("设备连接失败:", err);
@@ -468,29 +423,19 @@ Page({
   },
 
   getDeviceService(deviceId) {
-    console.log("=== 开始获取设备服务 ===");
-    console.log("设备ID:", deviceId);
-    
     wx.getBLEDeviceServices({
       deviceId,
       success: (res) => {
-        console.log("获取到的服务列表:", res.services);
         wx.hideLoading();
+        console.log("可用服务:", res.services.map(s => s.uuid));
         
-        // 显示所有可用服务
-        res.services.forEach((s, index) => {
-          console.log(`服务${index}: ${s.uuid}, 主服务: ${s.isPrimary}`);
-        });
-        
-        // 查找匹配的服务
         const service = res.services.find((item) => item.uuid.toUpperCase() === this.data.serviceId.toUpperCase());
         if (!service) {
-          wx.showToast({ title: `未找到匹配服务: ${this.data.serviceId}`, icon: "none" });
+          wx.showToast({ title: `未找到匹配服务`, icon: "none" });
           console.error("未找到匹配服务:", this.data.serviceId);
           return;
         }
 
-        console.log("找到匹配服务:", service);
         wx.showToast({ title: `找到匹配服务`, icon: "success" });
         
         setTimeout(() => {
@@ -499,14 +444,12 @@ Page({
       },
       fail: (err) => {
         wx.hideLoading();
-        console.error("获取服务失败:", err);
+        console.error("获取服务失败:", err.errCode, err.errMsg);
         let errorMsg = "获取服务失败";
         if (err.errCode === 10015) {
           errorMsg = "设备服务不可用，请重新连接设备";
         } else if (err.errCode === 10016) {
           errorMsg = "设备连接已断开，请重新搜索连接";
-        } else {
-          errorMsg = `获取服务失败: ${err.errMsg}`;
         }
         wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
       }
@@ -514,22 +457,15 @@ Page({
   },
 
   getDeviceCharacteristic(deviceId, serviceId) {
-    console.log("=== 开始获取设备特征值 ===");
-    console.log("设备ID:", deviceId);
-    console.log("服务ID:", serviceId);
-    
     wx.getBLEDeviceCharacteristics({
       deviceId,
       serviceId,
       success: (res) => {
-        console.log("获取到的特征值列表:", res.characteristics);
-        
-        wx.showToast({ title: `找到${res.characteristics.length}个特征值`, icon: "none" });
-        
-        // 显示所有特征值的信息，便于调试
-        res.characteristics.forEach((item, index) => {
-          console.log(`特征值${index}: ${item.uuid}, 支持write: ${item.properties.write}, writeWithoutResponse: ${item.properties.writeWithoutResponse}`);
-        });
+        console.log("特征值:", res.characteristics.map(c => ({
+          uuid: c.uuid, 
+          write: c.properties.write, 
+          writeNR: c.properties.writeWithoutResponse
+        })));
         
         // 查找匹配的特征值，支持write或writeWithoutResponse
         const characteristic = res.characteristics.find(
@@ -538,33 +474,18 @@ Page({
         );
         
         // 如果没找到指定特征值，尝试查找第一个可写特征值
-        let fallbackCharacteristic;
-        if (!characteristic) {
-          console.log(`未找到指定特征值: ${this.data.characteristicId}，尝试查找第一个可写特征值`);
-          fallbackCharacteristic = res.characteristics.find(
-            (item) => item.properties.write || item.properties.writeWithoutResponse
-          );
-        }
-        
-        const targetCharacteristic = characteristic || fallbackCharacteristic;
+        const targetCharacteristic = characteristic || res.characteristics.find(
+          (item) => item.properties.write || item.properties.writeWithoutResponse
+        );
         
         if (!targetCharacteristic) {
           wx.showToast({ title: "未找到任何可写特征值", icon: "none" });
-          console.error("未找到任何可写特征值:", res.characteristics);
+          console.error("未找到任何可写特征值");
           return;
         }
 
-        console.log("找到可写特征值:", targetCharacteristic);
-        console.log("特征值属性:", {
-          write: targetCharacteristic.properties.write,
-          writeWithoutResponse: targetCharacteristic.properties.writeWithoutResponse,
-          notify: targetCharacteristic.properties.notify,
-          indicate: targetCharacteristic.properties.indicate
-        });
-        
         wx.showToast({ title: `特征值连接成功`, icon: "success" });
         
-        // 只有获取到可写特征值后才显示完全连接
         this.setData({ 
           writeCharacteristicId: targetCharacteristic.uuid, 
           serviceId, 
@@ -573,7 +494,14 @@ Page({
         
         // 如果特征值支持notify，启用特征值监听
         if (targetCharacteristic.properties.notify || targetCharacteristic.properties.indicate) {
-          console.log("启用特征值监听");
+          // 移除旧监听器再注册
+          if (_bleCharChangeListener) {
+            wx.offBLECharacteristicValueChange(_bleCharChangeListener);
+          }
+          _bleCharChangeListener = (res) => {
+            console.log("收到设备数据:", new Uint8Array(res.value));
+            // 可以在这里处理设备返回的数据
+          };
           wx.notifyBLECharacteristicValueChange({
             deviceId: deviceId,
             serviceId: serviceId,
@@ -581,20 +509,14 @@ Page({
             state: true,
             success: (res) => {
               console.log("特征值监听启用成功:", res);
-              // 监听特征值变化
-              wx.onBLECharacteristicValueChange((res) => {
-                console.log("收到特征值变化:", res);
-                console.log("收到的数据:", new Uint8Array(res.value));
-                // 可以在这里处理设备返回的数据
-              });
+              wx.onBLECharacteristicValueChange(_bleCharChangeListener);
             },
             fail: (err) => {
               console.error("特征值监听启用失败:", err);
             }
           });
         }
-        
-        console.log("=== 设备连接完全成功！可以开始发送数据 ===");
+        console.log("设备连接完全成功，可以开始发送数据");
       },
       fail: (err) => {
         console.error("获取特征值失败:", err);
@@ -834,30 +756,15 @@ Page({
   },
 
   writePacket(packet) {
-    console.log("=== 开始调用writeBLECharacteristicValue ===");
-    console.log("设备ID:", this.data.connectedDeviceId);
-    console.log("服务ID:", this.data.serviceId);
-    console.log("特征值ID:", this.data.writeCharacteristicId);
-    
     let buffer;
     if (typeof packet === 'string') {
-      // 文本模式：将字符串转换为ArrayBuffer
-      console.log("文本模式数据包:", packet);
-      // 使用兼容性更好的方式转换字符串到ArrayBuffer
       buffer = this.stringToArrayBuffer(packet);
-      console.log("转换后的ArrayBuffer:", buffer);
-      console.log("ArrayBuffer大小:", buffer.byteLength);
     } else {
-      // 二进制模式：直接使用Uint8Array的buffer
-      console.log("二进制模式数据包:", packet);
       buffer = packet.buffer;
-      console.log("Uint8Array的buffer:", buffer);
-      console.log("buffer大小:", buffer.byteLength);
     }
     
-    // 检查buffer是否有效
     if (!buffer || buffer.byteLength === 0) {
-      console.error("无效的buffer，无法发送数据:", buffer);
+      console.error("无效的buffer:", buffer);
       return;
     }
     
@@ -867,12 +774,10 @@ Page({
       characteristicId: this.data.writeCharacteristicId,
       value: buffer,
       success: (res) => {
-        console.log("数据发送成功:", res);
+        console.log("发送成功:", res);
       },
       fail: (res) => {
-        console.error("数据发送失败:", res);
-        console.error("错误码:", res.errCode);
-        console.error("错误信息:", res.errMsg);
+        console.error("发送失败:", res.errCode, res.errMsg);
         
         // 只在首次失败时显示提示，避免频繁弹窗
         if (!this.hasSendError) {
@@ -888,15 +793,10 @@ Page({
             errorMsg = `发送失败: ${res.errMsg}`;
           }
           wx.showToast({ title: errorMsg, icon: "none", duration: 3000 });
-          // 3秒后重置错误标记
-          setTimeout(() => {
-            this.hasSendError = false;
-          }, 3000);
+          setTimeout(() => { this.hasSendError = false; }, 3000);
         }
       }
     });
-    
-    console.log("=== writeBLECharacteristicValue调用结束 ===");
   },
 
 
@@ -928,10 +828,10 @@ Page({
       hex = packet;
       hexRaw = packet;
     } else {
-      // 二进制模式日志（原有格式）
+      // 二进制模式日志
       const bytes = Array.from(packet);
       hexRaw = bytes.map((v) => v.toString(16).padStart(2, "0").toUpperCase()).join(" ");
-      hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} ↑:${bytes[2]} ↓:${bytes[3]} ←:${bytes[4]} →:${bytes[5]} ○:${bytes[6]} A:${bytes[7]} B:${bytes[8]} C:${bytes[9]} D:${bytes[10]} X:${bytes[11].toString(16).padStart(2,"0").toUpperCase()} T:${bytes[12]?.toString(16).padStart(2,"0").toUpperCase() || ''}`;
+      hex = `L:${bytes[0].toString(16).padStart(2,"0").toUpperCase()} R:${bytes[1].toString(16).padStart(2,"0").toUpperCase()} ↑:${bytes[2]} ↓:${bytes[3]} ←:${bytes[4]} →:${bytes[5]} ○:${bytes[6]} A:${bytes[7]} B:${bytes[8]} C:${bytes[9]} D:${bytes[10]} X:${bytes[11].toString(16).padStart(2,"0").toUpperCase()}`;
     }
     
     const time = this.formatTime(new Date());
@@ -989,7 +889,7 @@ Page({
     
     if(field === 'sendInterval') {
       const parsed = parseInt(value);
-      value = isNaN(parsed) ? 50 : parsed;
+      value = isNaN(parsed) ? 100 : parsed;
     }
 
     const temp = this.data.tempSettings;
@@ -1266,10 +1166,7 @@ Page({
 
   // --- 普/麦开关方法 ---
   togglePuMaiSwitch() {
-    this.setData({
-      puMaiSwitch: !this.data.puMaiSwitch
-    });
-    console.log('普/麦开关:', this.data.puMaiSwitch ? '麦' : '普');
+    this.setData({ puMaiSwitch: !this.data.puMaiSwitch });
   },
 
   // --- Slider Methods ---
@@ -1308,8 +1205,5 @@ Page({
     this.setData({
       sliderPosition: position
     });
-
-    // 实时反馈当前状态（可以添加更多的反馈）
-    console.log('滑杆位置:', position.toFixed(1) + '%');
   }
 });
