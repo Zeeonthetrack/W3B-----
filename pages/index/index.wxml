@@ -67,30 +67,30 @@ module.exports = {
   
   <!-- 编辑模式提示 -->
   <view class="edit-mode-hint" wx:if="{{isEditMode}}">
-    <text class="hint-text">点击选择组件 · 拖动移动位置</text>
+    <text class="hint-text">点击切换选中 · 直接拖动可移动组件</text>
   </view>
 
   <!-- 中间日志显示区 (40vh) -->
   <view class="middle-section">
     <!-- 左侧新增按键区 -->
     <view class="control-zone {{isEditMode && selectedElement === 'leftButtons' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.leftButtons.x}}px, {{layout.leftButtons.y}}px) scale({{layout.leftButtons.scale}});"
+          style="left: calc(7.5vw + {{layout.leftButtons.x}}px); top: calc(50% + {{layout.leftButtons.y}}px); transform: translateY(-50%) scale({{layout.leftButtons.scale}});"
           data-key="leftButtons"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'leftButtons'}}"></view>
       
       <view class="left-buttons-container">
         <view class="left-btn-item">
-          <view class="function-btn red {{btnLeftA?'active':''}}" data-color="leftA" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <view class="function-btn red {{btnLeftA?'active':''}}" data-color="leftA" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
             <text class="btn-label">A</text>
           </view>
         </view>
         <view class="left-btn-item">
-          <view class="function-btn green {{btnLeftB?'active':''}}" data-color="leftB" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <view class="function-btn green {{btnLeftB?'active':''}}" data-color="leftB" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
             <text class="btn-label">B</text>
           </view>
         </view>
@@ -99,23 +99,23 @@ module.exports = {
     
     <!-- 右侧新增按键区 -->
     <view class="control-zone {{isEditMode && selectedElement === 'rightButtons' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.rightButtons.x}}px, {{layout.rightButtons.y}}px) scale({{layout.rightButtons.scale}});"
+          style="right: calc(7.5vw - {{layout.rightButtons.x}}px); top: calc(50% + {{layout.rightButtons.y}}px); transform: translateY(-50%) scale({{layout.rightButtons.scale}});"
           data-key="rightButtons"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'rightButtons'}}"></view>
       
       <view class="right-buttons-container">
         <view class="right-btn-item">
-          <view class="function-btn yellow {{btnRightC?'active':''}}" data-color="rightC" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <view class="function-btn yellow {{btnRightC?'active':''}}" data-color="rightC" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
             <text class="btn-label">C</text>
           </view>
         </view>
         <view class="right-btn-item">
-          <view class="function-btn blue {{btnRightD?'active':''}}" data-color="rightD" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">
+          <view class="function-btn blue {{btnRightD?'active':''}}" data-color="rightD" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
             <text class="btn-label">D</text>
           </view>
         </view>
@@ -124,16 +124,16 @@ module.exports = {
     
     <!-- 日志容器 -->
     <view class="control-zone {{isEditMode && selectedElement === 'logContainer' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.logContainer.x}}px, {{layout.logContainer.y}}px) scale({{layout.logContainer.scale}});"
+          style="left: calc(50% + {{layout.logContainer.x}}px); top: calc(50% + {{layout.logContainer.y}}px); transform: translate(-50%, -50%) scale({{layout.logContainer.scale}});"
           data-key="logContainer"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'logContainer'}}"></view>
       
-      <view class="log-container glass-panel" bindtap="{{!isEditMode ? 'toggleLogPanel' : ''}}" hover-class="panel-hover">
+      <view class="log-container glass-panel" bindtap="toggleLogPanel" hover-class="panel-hover">
         <block wx:if="{{logList.length > 0}}">
           <view class="log-line highlight">
             <text class="log-time">{{logList[0].time}}</text>
@@ -172,12 +172,12 @@ module.exports = {
   <view class="bottom-section">
     <!-- 左摇杆区 (33vw) -->
     <view class="control-zone joystick-zone left-zone {{isEditMode && selectedElement === 'leftJoystick' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.leftJoystick.x}}px, {{layout.leftJoystick.y}}px) scale({{layout.leftJoystick.scale}});"
+          style="left: calc(16.5vw + {{layout.leftJoystick.x}}px); top: calc(50% + {{layout.leftJoystick.y}}px); transform: translate(-50%, -50%) scale({{layout.leftJoystick.scale}});"
           data-key="leftJoystick"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <!-- Edit Overlay Mask -->
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'leftJoystick'}}"></view>
@@ -189,10 +189,10 @@ module.exports = {
         class="joystick-area"
         id="leftPad"
         data-side="left"
-        bindtouchstart="{{!isEditMode ? 'onJoystickStart' : ''}}"
-        bindtouchmove="{{!isEditMode ? 'onJoystickMove' : ''}}"
-        bindtouchend="{{!isEditMode ? 'onJoystickEnd' : ''}}"
-        bindtouchcancel="{{!isEditMode ? 'onJoystickEnd' : ''}}"
+        bindtouchstart="onJoystickStart"
+        bindtouchmove="onJoystickMove"
+        bindtouchend="onJoystickEnd"
+        bindtouchcancel="onJoystickEnd"
       >
         <view class="joystick-base">
           <view class="joystick-stick" style="transform: translate({{leftStick.x}}px, {{leftStick.y}}px);"></view>
@@ -202,29 +202,29 @@ module.exports = {
 
     <!-- 中间按钮区 (34vw) -->
     <view class="control-zone buttons-zone {{isEditMode && selectedElement === 'buttons' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.buttons.x}}px, {{layout.buttons.y}}px) scale({{layout.buttons.scale}});"
+          style="left: calc(50vw + {{layout.buttons.x}}px); top: calc(50% + {{layout.buttons.y}}px); transform: translate(-50%, -50%) scale({{layout.buttons.scale}});"
           data-key="buttons"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'buttons'}}"></view>
 
       <view class="dpad-container">
         <view class="dpad-row">
           <view class="dpad-placeholder"></view>
-          <view class="dpad-btn up {{btnRed?'active':''}}" data-color="red" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">↑</view>
+          <view class="dpad-btn up {{btnRed?'active':''}}" data-color="red" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">↑</view>
           <view class="dpad-placeholder"></view>
         </view>
         <view class="dpad-row">
-          <view class="dpad-btn left {{btnGreen?'active':''}}" data-color="green" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">←</view>
-          <view class="dpad-center-btn {{btnCenter?'active':''}}" data-color="purple" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}"></view>
-          <view class="dpad-btn right {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">→</view>
+          <view class="dpad-btn left {{btnGreen?'active':''}}" data-color="green" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">←</view>
+          <view class="dpad-center-btn {{btnCenter?'active':''}}" data-color="purple" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd"></view>
+          <view class="dpad-btn right {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">→</view>
         </view>
         <view class="dpad-row">
           <view class="dpad-placeholder"></view>
-          <view class="dpad-btn down {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="{{!isEditMode ? 'onButtonTouchStart' : ''}}" bindtouchend="{{!isEditMode ? 'onButtonTouchEnd' : ''}}">↓</view>
+          <view class="dpad-btn down {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">↓</view>
           <view class="dpad-placeholder"></view>
         </view>
       </view>
@@ -232,12 +232,12 @@ module.exports = {
 
     <!-- 普/麦开关区 -->
     <view class="control-zone pu-mai-zone {{isEditMode && selectedElement === 'puMaiSwitch' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.puMaiSwitch.x}}px, {{layout.puMaiSwitch.y}}px) scale({{layout.puMaiSwitch.scale}});"
+          style="left: calc(66vw + {{layout.puMaiSwitch.x}}px); top: calc(50% + {{layout.puMaiSwitch.y}}px); transform: translate(-50%, -50%) scale({{layout.puMaiSwitch.scale}});"
           data-key="puMaiSwitch"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'puMaiSwitch'}}"></view>
 
@@ -252,12 +252,12 @@ module.exports = {
 
     <!-- 右摇杆区 (33vw) -->
     <view class="control-zone joystick-zone right-zone {{isEditMode && selectedElement === 'rightJoystick' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.rightJoystick.x}}px, {{layout.rightJoystick.y}}px) scale({{layout.rightJoystick.scale}});"
+          style="left: calc(83.5vw + {{layout.rightJoystick.x}}px); top: calc(50% + {{layout.rightJoystick.y}}px); transform: translate(-50%, -50%) scale({{layout.rightJoystick.scale}});"
           data-key="rightJoystick"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'rightJoystick'}}"></view>
 
@@ -268,10 +268,10 @@ module.exports = {
         class="joystick-area"
         id="rightPad"
         data-side="right"
-        bindtouchstart="{{!isEditMode ? 'onJoystickStart' : ''}}"
-        bindtouchmove="{{!isEditMode ? 'onJoystickMove' : ''}}"
-        bindtouchend="{{!isEditMode ? 'onJoystickEnd' : ''}}"
-        bindtouchcancel="{{!isEditMode ? 'onJoystickEnd' : ''}}"
+        bindtouchstart="onJoystickStart"
+        bindtouchmove="onJoystickMove"
+        bindtouchend="onJoystickEnd"
+        bindtouchcancel="onJoystickEnd"
       >
         <view class="joystick-base">
           <view class="joystick-stick" style="transform: translate({{rightStick.x}}px, {{rightStick.y}}px);"></view>
@@ -283,33 +283,26 @@ module.exports = {
   <!-- 底部滑杆区 -->
   <view class="slider-section">
     <view class="control-zone {{isEditMode && selectedElement === 'slider' ? 'selected-zone' : ''}}"
-          style="transform: translate({{layout.slider.x}}px, {{layout.slider.y}}px) scale({{layout.slider.scale}});"
+          style="left: calc(50vw + {{layout.slider.x}}px); top: calc(50% + {{layout.slider.y}}px); transform: translate(-50%, -50%) scale({{layout.slider.scale}});"
           data-key="slider"
-          catchtap="{{isEditMode ? 'onSelectComponent' : ''}}"
-          catchtouchstart="{{isEditMode ? 'onLayoutTouchStart' : ''}}"
-          catchtouchmove="{{isEditMode ? 'onLayoutTouchMove' : ''}}"
-          catchtouchend="{{isEditMode ? 'onLayoutTouchEnd' : ''}}">
+          catchtap="onSelectComponent"
+          catchtouchstart="onLayoutTouchStart"
+          catchtouchmove="onLayoutTouchMove"
+          catchtouchend="onLayoutTouchEnd">
       
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'slider'}}"></view>
       
       <view class="slider-container">
-        <!-- 滑杆左侧文字 -->
-        <text class="slider-label slider-left-label">收</text>
-        
         <!-- 滑杆轨道 -->
-        <view class="slider-track" catchtouchstart="{{!isEditMode ? 'onSliderStart' : ''}}" catchtouchmove="{{!isEditMode ? 'onSliderMove' : ''}}" catchtouchend="{{!isEditMode ? 'onSliderEnd' : ''}}" catchtouchcancel="{{!isEditMode ? 'onSliderEnd' : ''}}">
+        <view class="slider-track" catchtouchstart="onSliderStart" catchtouchmove="onSliderMove" catchtouchend="onSliderEnd" catchtouchcancel="onSliderEnd">
           <!-- 滑杆轨道线 -->
           <view class="slider-track-line"></view>
           
           <!-- 滑杆滑块 -->
           <view class="slider-thumb" style="left: {{sliderPosition}}%;">
-            <!-- 滑块上方文字 -->
-            <text class="slider-thumb-text">斗</text>
+            <text class="slider-thumb-text">{{sliderValue}}</text>
           </view>
         </view>
-        
-        <!-- 滑杆右侧文字 -->
-        <text class="slider-label slider-right-label">倒</text>
       </view>
     </view>
   </view>

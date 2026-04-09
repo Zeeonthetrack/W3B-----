@@ -254,15 +254,6 @@ page {
   transform: translate(-50%, -50%);
 }
 
-/* 编辑模式下，所有组件使用统一的定位基准 */
-/* 这样自定义变换才能正确生效，实现所见即所得 */
-.container.edit-mode-active .middle-section .control-zone {
-  left: 50% !important;
-  top: 50% !important;
-  right: auto !important;
-  /* 不强制覆盖transform，让自定义transform生效 */
-}
-
 /* 黄色和蓝色功能按钮样式 */
 .function-btn.yellow {
   background: linear-gradient(135deg, #FCC419, #E67700);
@@ -401,22 +392,20 @@ page {
 .bottom-section {
   flex: 0 0 46%;
   width: 100vw;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  position: relative;
   padding-bottom: 2vh; /* Slight bottom padding */
   box-sizing: border-box;
   margin-top: -6vh; 
 }
 
 .control-zone {
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: absolute;
   /* 确保变换原点在中心，实现所见即所得 */
   transform-origin: center center;
   /* Removed transition to ensure responsive drag */
@@ -468,44 +457,46 @@ page {
 
 .edit-control-panel {
   position: fixed;
-  bottom: 18vh;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 16px;
+  top: 11vh;
+  right: 3vw;
+  left: auto;
+  transform: none;
+  background: rgba(20, 20, 20, 0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
   z-index: 1000;
-  width: 85vw;
-  max-width: 400px;
+  width: 44vw;
+  min-width: 180px;
+  max-width: 240px;
 }
 
 .panel-title {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   color: #fff;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .scale-slider-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .slider-min, .slider-max {
-  font-size: 14px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
-  min-width: 24px;
+  min-width: 18px;
   text-align: center;
 }
 
 .scale-track {
   flex: 1;
-  height: 44px;
+  height: 32px;
   position: relative;
   display: flex;
   align-items: center;
@@ -513,16 +504,16 @@ page {
 
 .scale-track-line {
   width: 100%;
-  height: 6px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .scale-thumb {
   position: absolute;
   top: 50%;
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   background: linear-gradient(135deg, #007AFF, #0056CC);
   border-radius: 50%;
   transform: translate(-50%, -50%);
@@ -535,10 +526,10 @@ page {
 }
 
 .scale-value {
-  font-size: 13px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .edit-mask {
@@ -559,9 +550,11 @@ page {
   position: relative;
 }
 
-.left-zone, .right-zone { flex: 0 0 33vw; }
-.buttons-zone { flex: 0 0 34vw; }
-.pu-mai-zone { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+.left-zone, .right-zone, .buttons-zone, .pu-mai-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .joystick-value {
   margin-bottom: 2vh;
@@ -1130,8 +1123,8 @@ page {
 .slider-container {
   display: flex;
   align-items: center;
-  width: 90vw;
-  max-width: 500px;
+  width: 78vw;
+  max-width: 420px;
   height: 8vh;
   position: relative;
 }
@@ -1196,9 +1189,11 @@ page {
 }
 
 .slider-thumb-text {
-  font-size: 1.2em;
+  font-size: 1em;
   font-weight: bold;
   color: #007AFF;
+  min-width: 2.4em;
+  text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -1220,7 +1215,7 @@ page {
   }
   
   .slider-thumb-text {
-    font-size: 1em;
+    font-size: 0.9em;
   }
 }
 

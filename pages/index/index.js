@@ -20,6 +20,7 @@ Page({
     serviceId: SERVICE_UUID,
     characteristicId: CHAR_UUID,
     filterDeviceName: "W3B",
+    bleWriteLimit: 20,
 
     leftSpeed: 0,
     rightSpeed: 0,
@@ -38,6 +39,7 @@ Page({
     
     // 滑杆相关状态
     sliderPosition: 50, // 默认中间位置 (0-100%)
+    sliderValue: 50, // 滑杆对应数据值 (0-100)
     sliderRect: null,
     
     // 普/麦开关状态
@@ -489,8 +491,27 @@ Page({
         this.setData({ 
           writeCharacteristicId: targetCharacteristic.uuid, 
           serviceId, 
-          connectStatus: "已连接"
+          connectStatus: "已连接",
+          bleWriteLimit: 20
         });
+
+        // Android优先尝试提升MTU，降低文本模式超长失败概率
+        const systemInfo = wx.getSystemInfoSync();
+        if (systemInfo.platform === 'android' && wx.setBLEMTU) {
+          wx.setBLEMTU({
+            deviceId,
+            mtu: 247,
+            success: (mtuRes) => {
+              const mtu = mtuRes && mtuRes.mtu ? mtuRes.mtu : 23;
+              const writeLimit = Math.max(20, mtu - 3);
+              this.setData({ bleWriteLimit: writeLimit });
+              console.log(`MTU设置成功: ${mtu}, 可写上限: ${writeLimit}字节`);
+            },
+            fail: (mtuErr) => {
+              console.warn('MTU设置失败，使用默认20字节上限:', mtuErr);
+            }
+          });
+        }
         
         // 如果特征值支持notify，启用特征值监听
         if (targetCharacteristic.properties.notify || targetCharacteristic.properties.indicate) {
@@ -543,7 +564,8 @@ Page({
           connectStatus: "未连接",
           isConnected: false,
           connectedDeviceId: "",
-          writeCharacteristicId: ""
+          writeCharacteristicId: "",
+          bleWriteLimit: 20
         });
         wx.showToast({ title: "已断开连接" });
       }
@@ -561,6 +583,7 @@ Page({
   },
 
   onJoystickStart(e) {
+    if (this.data.isEditMode) return;
     const side = e.currentTarget.dataset.side;
     if (!this.padRect[side]) return;
 
@@ -570,6 +593,7 @@ Page({
   },
 
   onJoystickMove(e) {
+    if (this.data.isEditMode) return;
     const side = e.currentTarget.dataset.side;
     const activeId = this.activeTouches[side];
     if (activeId === null) return;
@@ -581,6 +605,7 @@ Page({
   },
 
   onJoystickEnd(e) {
+    if (this.data.isEditMode) return;
     const side = e.currentTarget.dataset.side;
     const activeId = this.activeTouches[side];
     if (activeId === null) return;
@@ -674,11 +699,13 @@ Page({
   },
 
   onButtonTouchStart(e) {
+    if (this.data.isEditMode) return;
     const color = e.currentTarget.dataset.color;
     this.updateButtonState(color, 1);
   },
 
   onButtonTouchEnd(e) {
+    if (this.data.isEditMode) return;
     const color = e.currentTarget.dataset.color;
     this.updateButtonState(color, 0);
   },
@@ -765,6 +792,20 @@ Page({
     
     if (!buffer || buffer.byteLength === 0) {
       console.error("无效的buffer:", buffer);
+      return;
+    }
+
+    const writeLimit = this.data.bleWriteLimit || 20;
+    if (buffer.byteLength > writeLimit) {
+      if (!this.hasPayloadTooLargeError) {
+        this.hasPayloadTooLargeError = true;
+        wx.showToast({
+          title: `数据${buffer.byteLength}字节，超出上限${writeLimit}`,
+          icon: "none",
+          duration: 2500
+        });
+        setTimeout(() => { this.hasPayloadTooLargeError = false; }, 2500);
+      }
       return;
     }
     
@@ -856,6 +897,7 @@ Page({
   },
 
   toggleLogPanel() {
+    if (this.data.isEditMode) return;
     this.setData({ showLogPanel: !this.data.showLogPanel });
   },
 
@@ -1021,37 +1063,43 @@ Page({
       selectedElement: null,
       scaleSliderPosition: 50
     });
+    this.dragState = null;
+  },
+
+  // 统一处理选中并同步尺寸滑杆位置
+  selectElement(key, allowDeselect = false) {
+    if (!key || !this.data.layout[key]) return;
+
+    if (allowDeselect && this.data.selectedElement === key) {
+      this.setData({ selectedElement: null });
+      return;
+    }
+
+    const scale = this.data.layout[key].scale;
+    const minScale = this.data.componentConfig.minScale;
+    const maxScale = this.data.componentConfig.maxScale;
+    const sliderPos = ((scale - minScale) / (maxScale - minScale)) * 100;
+
+    this.setData({
+      selectedElement: key,
+      scaleSliderPosition: this.clamp(sliderPos, 0, 100)
+    });
   },
 
   // 点击选择组件
   onSelectComponent(e) {
     if (!this.data.isEditMode) return;
     const key = e.currentTarget.dataset.key;
-    
-    // 如果点击的是已选中的组件，则取消选中
-    if (this.data.selectedElement === key) {
-      this.setData({ selectedElement: null });
-    } else {
-      // 选中新组件，并计算滑杆位置
-      const scale = this.data.layout[key].scale;
-      const minScale = this.data.componentConfig.minScale;
-      const maxScale = this.data.componentConfig.maxScale;
-      const sliderPos = ((scale - minScale) / (maxScale - minScale)) * 100;
-      
-      this.setData({ 
-        selectedElement: key,
-        scaleSliderPosition: this.clamp(sliderPos, 0, 100)
-      });
-    }
+    this.selectElement(key, true);
   },
 
   // 组件拖动开始
   onLayoutTouchStart(e) {
     if (!this.data.isEditMode) return;
     const key = e.currentTarget.dataset.key;
-    
-    // 只有选中的组件才能拖动
-    if (this.data.selectedElement !== key) return;
+
+    // 触摸组件时自动选中，减少操作步骤
+    this.selectElement(key, false);
     
     const touches = e.touches;
     if (touches.length === 1) {
@@ -1171,6 +1219,7 @@ Page({
 
   // --- Slider Methods ---
   onSliderStart(e) {
+    if (this.data.isEditMode) return;
     // 获取滑杆区域的位置信息
     const query = wx.createSelectorQuery();
     query.select('.slider-track').boundingClientRect();
@@ -1183,12 +1232,14 @@ Page({
   },
 
   onSliderMove(e) {
+    if (this.data.isEditMode) return;
     if (!this.data.sliderRect) return;
     const touch = e.touches[0];
     this.updateSliderPosition(touch);
   },
 
   onSliderEnd(e) {
+    if (this.data.isEditMode) return;
     // 触摸结束时的处理
     this.data.sliderRect = null;
   },
@@ -1203,7 +1254,8 @@ Page({
 
     // 更新滑块位置
     this.setData({
-      sliderPosition: position
+      sliderPosition: position,
+      sliderValue: Math.round(position)
     });
   }
 });
