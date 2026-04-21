@@ -85,13 +85,13 @@ module.exports = {
       
       <view class="left-buttons-container">
         <view class="left-btn-item">
-          <view class="function-btn red {{btnLeftA?'active':''}}" data-color="leftA" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
-            <text class="btn-label">A</text>
+          <view class="function-btn red {{(btnLeftA || pressPreview.leftA)?'active':''}}" data-key="leftButtons" data-color="leftA" catchtouchstart="onButtonTouchStart" catchtouchmove="onButtonTouchMove" catchtouchend="onButtonTouchEnd" catchtouchcancel="onButtonTouchEnd">
+            <text class="btn-label">倒</text>
           </view>
         </view>
         <view class="left-btn-item">
-          <view class="function-btn green {{btnLeftB?'active':''}}" data-color="leftB" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
-            <text class="btn-label">B</text>
+          <view class="function-btn green {{(btnLeftB || pressPreview.leftB)?'active':''}}" data-key="leftButtons" data-color="leftB" catchtouchstart="onButtonTouchStart" catchtouchmove="onButtonTouchMove" catchtouchend="onButtonTouchEnd" catchtouchcancel="onButtonTouchEnd">
+            <text class="btn-label">收</text>
           </view>
         </view>
       </view>
@@ -110,12 +110,12 @@ module.exports = {
       
       <view class="right-buttons-container">
         <view class="right-btn-item">
-          <view class="function-btn yellow {{btnRightC?'active':''}}" data-color="rightC" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
+          <view class="function-btn yellow {{(btnRightC || pressPreview.rightC)?'active':''}}" data-key="rightButtons" data-color="rightC" catchtouchstart="onButtonTouchStart" catchtouchmove="onButtonTouchMove" catchtouchend="onButtonTouchEnd" catchtouchcancel="onButtonTouchEnd">
             <text class="btn-label">C</text>
           </view>
         </view>
         <view class="right-btn-item">
-          <view class="function-btn blue {{btnRightD?'active':''}}" data-color="rightD" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">
+          <view class="function-btn blue {{(btnRightD || pressPreview.rightD)?'active':''}}" data-key="rightButtons" data-color="rightD" catchtouchstart="onButtonTouchStart" catchtouchmove="onButtonTouchMove" catchtouchend="onButtonTouchEnd" catchtouchcancel="onButtonTouchEnd">
             <text class="btn-label">D</text>
           </view>
         </view>
@@ -170,36 +170,6 @@ module.exports = {
 
   <!-- 底部操控区 (40vh) -->
   <view class="bottom-section">
-    <!-- 左摇杆区 (33vw) -->
-    <view class="control-zone joystick-zone left-zone {{isEditMode && selectedElement === 'leftJoystick' ? 'selected-zone' : ''}}"
-          style="left: calc(16.5vw + {{layout.leftJoystick.x}}px); top: calc(50% + {{layout.leftJoystick.y}}px); transform: translate(-50%, -50%) scale({{layout.leftJoystick.scale}});"
-          data-key="leftJoystick"
-          catchtap="onSelectComponent"
-          catchtouchstart="onLayoutTouchStart"
-          catchtouchmove="onLayoutTouchMove"
-          catchtouchend="onLayoutTouchEnd">
-      
-      <!-- Edit Overlay Mask -->
-      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'leftJoystick'}}"></view>
-
-      <view class="joystick-value">
-        <text>L: {{leftSpeed}}</text>
-      </view>
-      <view 
-        class="joystick-area"
-        id="leftPad"
-        data-side="left"
-        bindtouchstart="onJoystickStart"
-        bindtouchmove="onJoystickMove"
-        bindtouchend="onJoystickEnd"
-        bindtouchcancel="onJoystickEnd"
-      >
-        <view class="joystick-base">
-          <view class="joystick-stick" style="transform: translate({{leftStick.x}}px, {{leftStick.y}}px);"></view>
-        </view>
-      </view>
-    </view>
-
     <!-- 中间按钮区 (34vw) -->
     <view class="control-zone buttons-zone {{isEditMode && selectedElement === 'buttons' ? 'selected-zone' : ''}}"
           style="left: calc(50vw + {{layout.buttons.x}}px); top: calc(50% + {{layout.buttons.y}}px); transform: translate(-50%, -50%) scale({{layout.buttons.scale}});"
@@ -214,17 +184,17 @@ module.exports = {
       <view class="dpad-container">
         <view class="dpad-row">
           <view class="dpad-placeholder"></view>
-          <view class="dpad-btn up {{btnRed?'active':''}}" data-color="red" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">↑</view>
+          <view class="dpad-btn up {{btnRed?'active':''}}" data-color="red" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd" bindtouchcancel="onButtonTouchEnd">↑</view>
           <view class="dpad-placeholder"></view>
         </view>
         <view class="dpad-row">
-          <view class="dpad-btn left {{btnGreen?'active':''}}" data-color="green" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">←</view>
-          <view class="dpad-center-btn {{btnCenter?'active':''}}" data-color="purple" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd"></view>
-          <view class="dpad-btn right {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">→</view>
+          <view class="dpad-btn left {{btnGreen?'active':''}}" data-color="green" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd" bindtouchcancel="onButtonTouchEnd">←</view>
+          <view class="dpad-center-btn {{btnCenter?'active':''}}" data-color="purple" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd" bindtouchcancel="onButtonTouchEnd"></view>
+          <view class="dpad-btn right {{btnYellow?'active':''}}" data-color="yellow" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd" bindtouchcancel="onButtonTouchEnd">→</view>
         </view>
         <view class="dpad-row">
           <view class="dpad-placeholder"></view>
-          <view class="dpad-btn down {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd">↓</view>
+          <view class="dpad-btn down {{btnBlue?'active':''}}" data-color="blue" bindtouchstart="onButtonTouchStart" bindtouchend="onButtonTouchEnd" bindtouchcancel="onButtonTouchEnd">↓</view>
           <view class="dpad-placeholder"></view>
         </view>
       </view>
@@ -249,35 +219,6 @@ module.exports = {
         </view>
       </view>
     </view>
-
-    <!-- 右摇杆区 (33vw) -->
-    <view class="control-zone joystick-zone right-zone {{isEditMode && selectedElement === 'rightJoystick' ? 'selected-zone' : ''}}"
-          style="left: calc(83.5vw + {{layout.rightJoystick.x}}px); top: calc(50% + {{layout.rightJoystick.y}}px); transform: translate(-50%, -50%) scale({{layout.rightJoystick.scale}});"
-          data-key="rightJoystick"
-          catchtap="onSelectComponent"
-          catchtouchstart="onLayoutTouchStart"
-          catchtouchmove="onLayoutTouchMove"
-          catchtouchend="onLayoutTouchEnd">
-      
-      <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'rightJoystick'}}"></view>
-
-      <view class="joystick-value">
-        <text>R: {{rightSpeed}}</text>
-      </view>
-      <view 
-        class="joystick-area"
-        id="rightPad"
-        data-side="right"
-        bindtouchstart="onJoystickStart"
-        bindtouchmove="onJoystickMove"
-        bindtouchend="onJoystickEnd"
-        bindtouchcancel="onJoystickEnd"
-      >
-        <view class="joystick-base">
-          <view class="joystick-stick" style="transform: translate({{rightStick.x}}px, {{rightStick.y}}px);"></view>
-        </view>
-      </view>
-    </view>
   </view>
 
   <!-- 底部滑杆区 -->
@@ -293,15 +234,19 @@ module.exports = {
       <view class="edit-mask" wx:if="{{isEditMode && selectedElement === 'slider'}}"></view>
       
       <view class="slider-container">
-        <!-- 滑杆轨道 -->
-        <view class="slider-track" catchtouchstart="onSliderStart" catchtouchmove="onSliderMove" catchtouchend="onSliderEnd" catchtouchcancel="onSliderEnd">
-          <!-- 滑杆轨道线 -->
+        <!-- 滑杆轨道：仅在长按拖动时展开显示 -->
+        <view class="slider-track {{sliderTrackVisible ? 'expanded' : ''}}">
           <view class="slider-track-line"></view>
-          
-          <!-- 滑杆滑块 -->
-          <view class="slider-thumb" style="left: {{sliderPosition}}%;">
-            <text class="slider-thumb-text">{{sliderValue}}</text>
-          </view>
+          <view class="slider-value-marker {{sliderDragActive ? 'visible' : ''}}" style="left: {{sliderPosition}}%;"></view>
+        </view>
+
+        <!-- 手柄：始终固定在中间，数值实时变化 -->
+        <view class="slider-thumb"
+              bindtouchstart="onSliderStart"
+              bindtouchmove="onSliderMove"
+              bindtouchend="onSliderEnd"
+              bindtouchcancel="onSliderEnd">
+          <text class="slider-value-label">{{sliderValue}}</text>
         </view>
       </view>
     </view>
@@ -322,7 +267,7 @@ module.exports = {
         <text class="legend-item">R:右电机</text>
         <text class="legend-item">↑/↓/←/→:方向键</text>
         <text class="legend-item">○:中间键</text>
-        <text class="legend-item">A/B:左侧功能键</text>
+        <text class="legend-item">倒/收:左侧功能键</text>
         <text class="legend-item">C/D:右侧功能键</text>
         <text class="legend-item">X:校验</text>
       </view>

@@ -36,10 +36,18 @@ Page({
     btnLeftB: 0,
     btnRightC: 0,
     btnRightD: 0,
+    pressPreview: {
+      leftA: false,
+      leftB: false,
+      rightC: false,
+      rightD: false
+    },
     
     // 滑杆相关状态
     sliderPosition: 50, // 默认中间位置 (0-100%)
     sliderValue: 50, // 滑杆对应数据值 (0-100)
+    sliderTrackVisible: false, // 长按拖动时显示轨道
+    sliderDragActive: false, // 长按触发后进入拖动状态
     sliderRect: null,
     
     // 普/麦开关状态
@@ -96,6 +104,8 @@ Page({
   onLoad() {
     this.padRect = { left: null, right: null };
     this.activeTouches = { left: null, right: null };
+    this.sliderLongPressTimer = null;
+    this.sliderTouchMeta = null;
     
     // 默认布局定义
     const defaultLayout = {
@@ -177,6 +187,7 @@ Page({
   onUnload() {
     this.stopSendLoop();
     this.stopAutoSave();
+    this.clearSliderLongPressTimer();
     this.disconnectDevice();
     wx.closeBluetoothAdapter();
   },
@@ -699,15 +710,40 @@ Page({
   },
 
   onButtonTouchStart(e) {
-    if (this.data.isEditMode) return;
     const color = e.currentTarget.dataset.color;
+    if (this.data.isEditMode) {
+      this.setPressPreviewState(color, true);
+      this.onLayoutTouchStart(e);
+      return;
+    }
     this.updateButtonState(color, 1);
   },
 
+  onButtonTouchMove(e) {
+    if (!this.data.isEditMode) return;
+    this.onLayoutTouchMove(e);
+  },
+
   onButtonTouchEnd(e) {
-    if (this.data.isEditMode) return;
     const color = e.currentTarget.dataset.color;
+    if (this.data.isEditMode) {
+      this.setPressPreviewState(color, false);
+      this.onLayoutTouchEnd(e);
+      return;
+    }
     this.updateButtonState(color, 0);
+  },
+
+  setPressPreviewState(color, pressed) {
+    const keyMap = {
+      leftA: 'leftA',
+      leftB: 'leftB',
+      rightC: 'rightC',
+      rightD: 'rightD'
+    };
+    const key = keyMap[color];
+    if (!key) return;
+    this.setData({ [`pressPreview.${key}`]: pressed });
   },
 
   updateButtonState(color, pressed) {
@@ -1061,7 +1097,13 @@ Page({
     this.setData({ 
       isEditMode: !this.data.isEditMode,
       selectedElement: null,
-      scaleSliderPosition: 50
+      scaleSliderPosition: 50,
+      pressPreview: {
+        leftA: false,
+        leftB: false,
+        rightC: false,
+        rightD: false
+      }
     });
     this.dragState = null;
   },
@@ -1220,28 +1262,100 @@ Page({
   // --- Slider Methods ---
   onSliderStart(e) {
     if (this.data.isEditMode) return;
-    // 获取滑杆区域的位置信息
-    const query = wx.createSelectorQuery();
-    query.select('.slider-track').boundingClientRect();
-    query.exec((res) => {
-      if (res[0]) {
-        this.data.sliderRect = res[0];
-        this.updateSliderPosition(e.touches[0]);
-      }
-    });
+
+    const touch = e.changedTouches && e.changedTouches[0];
+    if (!touch) return;
+
+    this.sliderTouchMeta = {
+      id: touch.identifier,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      lastX: touch.clientX,
+      lastY: touch.clientY
+    };
+
+    this.clearSliderLongPressTimer();
+    this.sliderLongPressTimer = setTimeout(() => {
+      if (!this.sliderTouchMeta) return;
+      this.setData({
+        sliderDragActive: true
+      });
+    }, 260);
   },
 
   onSliderMove(e) {
     if (this.data.isEditMode) return;
-    if (!this.data.sliderRect) return;
-    const touch = e.touches[0];
+
+    const meta = this.sliderTouchMeta;
+    if (!meta) return;
+
+    const touch = this.findTouchById(e.touches || [], meta.id) || this.findTouchById(e.changedTouches || [], meta.id);
+    if (!touch) return;
+
+    meta.lastX = touch.clientX;
+    meta.lastY = touch.clientY;
+
+    // 长按触发前，较大位移视为取消本次操作
+    if (!this.data.sliderDragActive) {
+      const dx = Math.abs(touch.clientX - meta.startX);
+      const dy = Math.abs(touch.clientY - meta.startY);
+      if (dx > 14 || dy > 14) {
+        this.clearSliderLongPressTimer();
+      }
+      return;
+    }
+
+    if (!this.data.sliderRect) {
+      if (!this.data.sliderTrackVisible) {
+        this.setData({ sliderTrackVisible: true });
+      }
+      this.measureSliderRect(() => {
+        this.updateSliderPosition(touch);
+      });
+      return;
+    }
+
+    if (!this.data.sliderTrackVisible) {
+      this.setData({ sliderTrackVisible: true });
+    }
+
     this.updateSliderPosition(touch);
   },
 
   onSliderEnd(e) {
     if (this.data.isEditMode) return;
-    // 触摸结束时的处理
+
+    this.clearSliderLongPressTimer();
+    this.sliderTouchMeta = null;
+
+    if (this.data.sliderTrackVisible || this.data.sliderDragActive) {
+      this.setData({
+        sliderTrackVisible: false,
+        sliderDragActive: false
+      });
+    }
+
     this.data.sliderRect = null;
+  },
+
+  clearSliderLongPressTimer() {
+    if (this.sliderLongPressTimer) {
+      clearTimeout(this.sliderLongPressTimer);
+      this.sliderLongPressTimer = null;
+    }
+  },
+
+  measureSliderRect(callback) {
+    const query = wx.createSelectorQuery();
+    query.select('.slider-container').boundingClientRect();
+    query.exec((res) => {
+      if (res[0]) {
+        this.data.sliderRect = res[0];
+        if (typeof callback === 'function') {
+          callback();
+        }
+      }
+    });
   },
 
   updateSliderPosition(touch) {
